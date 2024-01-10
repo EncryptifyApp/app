@@ -1,18 +1,108 @@
 import React from 'react'
-import { Text, TouchableOpacity} from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
 
 interface Props {
-    text:string
+  text?: string;
+  textColor: string;
+  bgColor: string;
+  size: "small" | "medium" | "large";
+  width: "full" | "half" | "most" | "min" | "xmin";
+  weight: "regular" | "normal" | "bold" | "semibold";
+  icon?: any;
+
+  loading?: boolean;
+  disabled?: boolean;
+  onPress: any;
 }
 
+const backgroundColors = {
+  primary: "bg-primary",
+  black: "bg-black",
+  'midnight-black': "bg-midnight-black",
+  'steel-gray': "bg-steel-gray",
 
-export default function Button({text}:Props) {
+};
+
+const textColors = {
+  primary: "text-primary",
+  white: "text-white",
+  black: "text-black",
+  'midnight-black': "text-midnight-black",
+  red: "text-red-700"
+};
+
+const sizes = {
+  small: "px-0.5 py-0.5",
+  medium: "px-1 py-1",
+  large: "px-2 py-2",
+};
+
+const widths = {
+  full: "w-full",
+  half: "w-1/2",
+  most: "w-full lg:w-2/3",
+  min: "w-1/3",
+  xmin: "w-1/12"
+};
+
+const weights = {
+  regular: "font-primary-regular",
+  normal: "font-primary-normal",
+  bold: "font-primary-bold",
+  semibold: "font-primary-semibold",
+};
+
+
+function getClassName(...classes: any) {
+  return classes.filter(Boolean).join(' ');
+}
+
+export default function Button({
+  text,
+  textColor,
+  bgColor,
+  width,
+  weight,
+  size,
+  loading,
+  icon,
+  onPress,
+  disabled
+}: Props) {
+  let textColorClasses = textColors[textColor as keyof typeof textColors];
+  let bgcolorClasses = backgroundColors[bgColor as keyof typeof backgroundColors];
+  let widthClasses = widths[width];
+  let sizeClasses = sizes[size];
+  let weightClasses = weights[weight as keyof typeof weights];
+  let ActivityIndicatorColor = textColor == "primary" ? "#000000" : "#ffffff";
   return (
-    <TouchableOpacity className='w-full py-4 px-8 bg-primary rounded-2xl'>
-      <Text className='text-black text-center font-semibold text-lg '>
+    <TouchableOpacity
+      disabled={disabled || loading}
+      onPress={onPress}
+      className={getClassName(
+        'flex flex-row items-center justify-center',
+        'border border-transparent rounded-md shadow-sm capitalize',
+        'text-center transition duration-800 ease-in-out transform',
+        `${bgcolorClasses}`,
+        `${widthClasses}`,
+        `${sizeClasses}`,
+
+        disabled ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'
+      )}
+    >
+      {icon && !loading && (
+        <Text className={getClassName(`${textColorClasses}`)}>
+          {icon}
+        </Text>
+      )}
+      {
+        loading ? (
+          <ActivityIndicator color={ActivityIndicatorColor} />
+        ) : <Text className={getClassName(`${textColorClasses} ${weightClasses} uppercase text-lg lg:text-xl`)}>
         {text}
       </Text>
-    </TouchableOpacity>
-  )
+      }
+    </TouchableOpacity >
+  );
 }

@@ -8,9 +8,9 @@
     "userInterfaceStyle": "light",
     "scheme": "your-app-scheme",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "image": "./assets/encryptifySplash.png",
+      "resizeMode": "fill",
+      "backgroundColor": "#000000"
     },
     "assetBundlePatterns": [
       "**/*"

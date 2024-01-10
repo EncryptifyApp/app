@@ -1,0 +1,8 @@
+mutation Authenticate($registrationToken: String!, $username: String!, $publicKey: String!) {
+  authenticate(registrationToken: $registrationToken, username: $username, publicKey: $publicKey) {
+    error {
+      ...FieldErrorFragment
+    }
+    sessionToken
+  }
+}

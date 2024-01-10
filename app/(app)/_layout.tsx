@@ -1,25 +1,44 @@
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, SplashScreen, Stack } from 'expo-router';
 import { useSession } from '../../context/useSession';
 import { Text } from 'react-native';
+import {
+    useFonts,
+    Rajdhani_400Regular,
+    Rajdhani_500Medium,
+    Rajdhani_600SemiBold,
+    Rajdhani_700Bold,
+} from '@expo-google-fonts/rajdhani';
+import { PRIVATE_KEY } from '../../constants';
 import { useStorageState } from '../../utils/useStorageState';
-
+import { useEffect } from 'react';
+SplashScreen.preventAutoHideAsync();
 export default function AppLayout() {
     const { session, isLoading } = useSession() || { session: null, isLoading: true };
+    const [[, privateKey]] = useStorageState(PRIVATE_KEY);
 
-    const [[isLoad, firstTime], setFirstTime] = useStorageState('firstTime');
+    let [fontsLoaded, fontError] = useFonts({
+        Rajdhani_400Regular,
+        Rajdhani_500Medium,
+        Rajdhani_600SemiBold,
+        Rajdhani_700Bold,
+    });
 
-    if (isLoading) {
-        return <Text>Loading...</Text>;
+
+    useEffect(() => {
+        if (fontsLoaded || fontError || isLoading) {
+            SplashScreen.hideAsync();
+        }
+    }, [fontsLoaded, fontError, isLoading]);
+
+    // Prevent rendering until the font has loaded or an error was returned
+    if (!fontsLoaded && !fontError) {
+        return null;
     }
 
-    if (!session) {
-        if (firstTime === null) {
-            return <Redirect href="/boarding" />;
-        }
-        else {
-            return <Redirect href="/sign-in" />;
-        }
+    if (!session || !privateKey) {
+        return <Redirect href="/auth" />;
     }
 
-    return <Stack />;
+    return <Stack screenOptions={{ headerShown: false }} />
+
 }

@@ -13,7 +13,6 @@ function useAsyncState<T>(
 }
 
 export async function setStorageItemAsync(key: string, value: string | null) {
-
     if (value == null) {
         await SecureStore.deleteItemAsync(key);
     } else {

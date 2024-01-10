@@ -1,0 +1,19 @@
+query Chats {
+    chats {
+        id
+        updatedAt
+    members {
+        id
+        username
+    }
+    messages {
+      id
+      content
+      createdAt
+      sender {
+        username
+        profileUrl
+      }
+    }
+    }
+}

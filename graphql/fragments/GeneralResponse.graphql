@@ -1,0 +1,6 @@
+fragment GeneralResponseFragment on GeneralResponse {
+    error {
+      ...FieldErrorFragment
+    }
+  success
+}

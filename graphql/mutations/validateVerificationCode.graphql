@@ -1,0 +1,8 @@
+mutation ValidateVerificationCode($registrationToken: String!, $code: String!) {
+  validateVerificationCode(registrationToken: $registrationToken, code: $code) {
+    error {
+    ...FieldErrorFragment
+    }
+    token
+  }
+}
