@@ -1,284 +1,379 @@
-import { View, TextInput, Text, Image, TextInputKeyPressEventData, NativeSyntheticEvent } from 'react-native';
+import { View, TextInput, Text, Image, TouchableOpacity } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useSession } from '../context/useSession';
 import Button from '../components/Button';
-import React, { createRef, useRef, useState } from 'react';
-import PhoneInput from 'react-native-phone-number-input';
-import { useAuthenticateMutation, useSendVerificationCodeMutation, useValidateVerificationCodeMutation } from '../generated/graphql';
-import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { useAuthenticateMutation, useFindAccountQuery } from '../generated/graphql';
 import { toast } from "@backpackapp-io/react-native-toast"
 import { NotificationStyle, PRIVATE_KEY } from '../constants';
-import { generateKeyPair } from '../utils/crypto';
+import { decryptPrivateKey, encryptPrivateKey, generateKeyPair } from '../utils/crypto';
 import { encode } from '@stablelib/base64';
+import { generate } from "random-words";
+import { Feather } from '@expo/vector-icons';
 import { setStorageItemAsync } from '../utils/useStorageState';
+import { useRouter } from 'expo-router';
+import CryptoES from 'crypto-es';
 
-type AuthStep = 'INPUT_PHONE_NUMBER' | 'INPUT_CODE' | 'INPUT_USERNAME';
+type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE' | 'INPUT_USERNAME';
 
 
 export default function Auth() {
+  const router = useRouter();
   const { authenticateUser } = useSession() || { session: null, isLoading: true };
-  const [step, setStep] = useState<AuthStep>('INPUT_PHONE_NUMBER');
-  const [token, setToken] = useState<string>('');
+  const [step, setStep] = useState<AuthStep>('INPUT_ACCOUNT_NUMBER');
   const [loading, setLoading] = useState<boolean>(false);
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [countryCode, setCountryCode] = useState<string[]>(['+1']);
+
+  //account number
+  const [accountNumber, setAccountNumber] = useState<string>('');
+  const [paused, setPaused] = useState(true);
+  const [result, reexecuteQuery] = useFindAccountQuery({ variables: { accountNumber: accountNumber }, pause: paused });
+
+  //passphrase
+  const [passphrase, setPassphrase] = useState<string>('');
   const [username, setUsername] = useState<string>('');
-  //verification code
-  const inputRefs = useRef<Array<TextInput | null>>(
-    Array.from({ length: 6 }).map(() => createRef<TextInput | null>().current)
-  );
+  const [isPassphraseCopied, setIsPassphraseCopied] = useState<boolean>(false);
 
-  const [code, setCode] = useState<string[]>(Array(6).fill(''));
+  //keys
+  const [publicKey, setPublicKey] = useState<string>('');
+  const [privateKey, setPrivateKey] = useState<string>('');
+  const [encryptedPrivateKey, setEncryptedPrivateKey] = useState<string>('');
 
-
-  const handleCodeChange = (text: string, index: number) => {
-    setCode((prevCode) => {
-      const newCode = [...prevCode];
-      newCode[index] = text;
-
-      if (text && index < 5) {
-        inputRefs.current[index + 1]?.focus();
-      }
-
-      return newCode;
-    });
-  };
-
-  const handleKeyPress = (event: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
-    if (event.nativeEvent.key === 'Backspace' && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-
-  const phoneInput = useRef<PhoneInput>(null);
-
-  const [, sendVerificationCode] = useSendVerificationCodeMutation();
-  const [, validateVerificationCode] = useValidateVerificationCodeMutation();
   const [, authenticate] = useAuthenticateMutation();
 
-  const Send = async () => {
-    const checkValid = phoneInput.current?.isValidNumber(phoneNumber);
-    if (!checkValid) {
-      throw new Error('Invalid number');
+  
+
+  const FindAccount = async () => {
+    if (accountNumber === '' || accountNumber.length != 12) {
+      toast.error('Please enter a valid account number', { styles: NotificationStyle })
     }
     try {
-      const isValidNumber = phoneInput.current?.isValidNumber(phoneNumber);
-
-      if (!isValidNumber) {
-        throw new Error('Invalid phone number');
-      }
-
       setLoading(true);
+      setPaused(false);
+      reexecuteQuery();
+      const { data } = result;
 
-      const response = await sendVerificationCode({
-        phoneNumber: phoneNumber,
-        countryCode: '+' + countryCode[0],
-      });
-     
-      if (response.data?.sendVerificationCode.error) {
-        throw new Error(response.data?.sendVerificationCode.error.message);
+      if (data?.findAccount.error) {
+        toast.error(data?.findAccount.error.message, { styles: NotificationStyle });
       }
-
-      if (response.data?.sendVerificationCode.token) {
-        setToken(response.data?.sendVerificationCode.token);
-        setStep('INPUT_CODE');
+      if (data?.findAccount.user) {
+        if (data.findAccount.user.encryptedPrivateKey === null) {
+          setStep('CREATE_PASSPHRASE');
+        }
+        else {
+          setUsername(data.findAccount.user.username!);
+          setPublicKey(data.findAccount.user.publicKey!);
+          setEncryptedPrivateKey(data.findAccount.user.encryptedPrivateKey!);
+          setStep('INPUT_PASSPHRASE');
+        }
       }
     } catch (error) {
-      console.error('Error sending verification code:', error);
-      throw new Error('Failed to send verification code');
+      console.log(error);
+      toast.error('Error: try again later', { styles: NotificationStyle });
     } finally {
       setLoading(false);
     }
   };
 
-  const VerifyCode = async () => {
-    try {
-      setLoading(true);
+  //TODO: move this to a utils file
+  const generatePhrase = async () => {
+    const words = generate(6);
+    setPassphrase(words.join(" ") as string);
+  }
 
-      const response = await validateVerificationCode({
-        registrationToken: token,
-        code: code.join(''),
-      });
-
-      if (response.data?.validateVerificationCode.error) {
-        return new Error(response.data?.validateVerificationCode.error.message);
-      }
-
-      if (response.data?.validateVerificationCode.token) {
-        setToken(response.data?.validateVerificationCode.token);
-        setStep('INPUT_USERNAME');
-      }
-    } catch (error) {
-      console.error('Error validating verification code:', error);
-      // Handle or log the error as needed
-      throw new Error('Failed to validate verification code');
-    } finally {
-      setLoading(false);
+  const generateKeys = async () => {
+    if (passphrase.trim().split(/\s+/).length < 3) {
+      return
     }
-  };
-
-  const Authenticate = async () => {
     try {
-      if (username.length < 3) {
-        throw new Error('The username you entered is too short.');
-      }
-      setLoading(true);
       //generate Keypair
       const pair = generateKeyPair();
       //converting the public key to string
       const base64String = encode(pair.publicKey);
+      const privateKey = pair.secretKey.toString();
+      setStorageItemAsync(PRIVATE_KEY, privateKey);
+      //encrypt the private key with the passphrase
+      const encryptedPrivateKey = encryptPrivateKey(privateKey, passphrase);
 
-      const response = await authenticate({
-        registrationToken: token,
-        username: username,
-        publicKey: base64String
-      });
+      setPublicKey(base64String);
+      setPrivateKey(privateKey);
+      setEncryptedPrivateKey(encryptedPrivateKey);
 
-      if (response.data?.authenticate.error) {
-        throw new Error(response.data?.authenticate.error.message);
+      setStep('INPUT_USERNAME');
+    }
+    catch (error) {
+      toast.error('Error: try again later', { styles: NotificationStyle });
+    }
+  }
+
+  const DecryptPrivateKeys = async () => {   
+    try {
+      setLoading(true);
+      //decrypt the private key with the passphrase
+      const decryptedPrivateKey = decryptPrivateKey(encryptedPrivateKey, passphrase);
+      if(decryptedPrivateKey === null || decryptedPrivateKey === ""){
+        toast.error('Error: Invalid passphrase', { styles: NotificationStyle });
+        return
+      } else {
+        setStorageItemAsync(PRIVATE_KEY, decryptedPrivateKey.toString());
+        setStep('INPUT_USERNAME');
       }
+    }
+    catch (error) {
 
-      if (response.data?.authenticate.sessionToken) {
-        setStorageItemAsync(PRIVATE_KEY, pair.secretKey.toString());
-        //@ts-ignore
-        authenticateUser(response.data.authenticate.sessionToken);
-        router.replace('/');
-      }
-    } catch (error) {
-      console.error('Error in Authenticate function:', error);
-      // Handle or log the error as needed
-      throw new Error('Authentication failed');
+      console.log(error);
+      toast.error('Error: try again later', { styles: NotificationStyle });
     } finally {
       setLoading(false);
     }
-  };
+
+  }
+
+  const Authenticate = async () => {
+    if (username.length < 3) {
+      return
+    }
+    try {
+      setLoading(true);
+      const { data } = await authenticate({
+        username: username,
+        accountNumber: accountNumber,
+        publicKey: publicKey,
+        encryptedPrivateKey: encryptedPrivateKey
+      });
+      if (data?.authenticate.error) {
+        toast.error(data?.authenticate.error.message, { styles: NotificationStyle });
+      }
+      if (data?.authenticate.sessionToken) {
+        authenticateUser(data.authenticate.sessionToken);
+        router.replace('/');
+      }
+    }
+    catch (error) {
+      toast.error('Error: try again later', { styles: NotificationStyle });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+  useEffect(() => {
+    if (isPassphraseCopied) {
+      setIsPassphraseCopied(false);
+    }
+  }, [passphrase]);
 
 
   return (
-    <>
-      {step === 'INPUT_PHONE_NUMBER' && (
-        <View className='flex-1 items-center justify-center px-8 bg-midnight-black space-y-20'>
-          <Image
-            source={require('../assets/favicon.png')}
-            className='w-10 h-10 mb-5'
-          />
-          <View className='flex flex-row justify-center my-5 text-white'>
-            <PhoneInput
-              ref={phoneInput}
+    <View className="flex-1 items-center justify-center px-8 bg-midnight-black space-y-20">
+      {step === 'INPUT_ACCOUNT_NUMBER' && (
+        <><Image
+          source={require('../assets/logo.png')}
+          className="w-24 h-24 mb-5" /><View className="flex flex-row justify-center my-5 text-white">
+            <TextInput
+              placeholder="Account number"
+              keyboardType='numeric'
+              placeholderTextColor="#FFF"
+              className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
               
-              defaultCode="US"
-              layout="first"
-              onChangeText={(text) => setPhoneNumber(text)}
-              onChangeCountry={(code) => setCountryCode(code.callingCode)}
-              textInputStyle={{ color: 'white' }}
-              textContainerStyle={{ backgroundColor: '#191b1f', borderRadius: 5 }}
-              codeTextStyle={{ color: 'white' }}
-              containerStyle={{ borderRadius: 5, backgroundColor: '#191b1f' }}
-              withDarkTheme
-            />
-          </View>
-          <Button
-            text='Send Code'
-            textColor='black'
-            bgColor='primary'
-            width='full'
+              onChangeText={(text) => setAccountNumber(text)} />
+          </View><Button
+            text="Enter"
+            textColor="black"
+            bgColor="primary"
+            width="full"
             loading={loading}
-            size='large'
-            weight='semibold'
-            disabled={
-              !phoneInput.current?.isValidNumber(phoneNumber)
-            }
-            onPress={() => {
-              const promise = Send();
-              toast.promise(promise, {
-                loading: 'Sending...',
-                success: "SMS Sent",
-                error: (err) => err.toString(),
-              }, { styles: NotificationStyle })
-            }}
-          />
+            size="large"
+            weight="semibold"
+            disabled={accountNumber.length !== 12}
+            onPress={FindAccount} />
+          <Text className="text-white text-base font-primary-medium text-center mt-8">If you do not have an account number, you can acquire one through our official website.</Text>
+        </>
 
-        </View>
       )}
       {
-        step === "INPUT_CODE" && (
-          <View className='flex-1 justify-center items-center px-6 bg-midnight-black space-y-10'>
-            <Text className='text-lg mb-4 text-white font-primary-medium text-center'>Enter the six digit code that we sent to this number: {countryCode} {phoneNumber}</Text>
+        step === "CREATE_PASSPHRASE" && (
+          <>
+            <View className="flex flex-col justify-center space-y-5">
+              <View className='space-y-5'>
+                <Text className="text-white text-xl font-primary-bold text-center">Recovery phrase</Text>
+                <Text className="text-white text-base font-primary-medium text-center">You can only recover your encryption keys with your recovery phrase so make sure to keep it private and safe</Text>
+              </View>
 
-            <View className='flex flex-row mb-8'>
-              {[...Array(6).keys()].map((index) => (
+
+              <View style={{ position: 'relative' }}>
                 <TextInput
-                  className='w-10 h-12 text-center border-2 rounded-md text-2xl bg-steel-gray border-steel-gray text-white mx-2'
-                  key={index}
-                  ref={(ref) => (inputRefs.current[index] = ref)}
-                  value={code[index]}
-                  onChangeText={(text) => handleCodeChange(text, index)}
-                  keyboardType="numeric"
-                  maxLength={1}
-                  onKeyPress={(event) => handleKeyPress(event, index)}
-                  autoFocus={index === 0}
+                  placeholder="Recovery phrase"
+                  placeholderTextColor="#FFF"
+                  className="w-full p-2 text-white border-2 mb-10 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100"
+                  value={passphrase}
+                  onChangeText={(text) => setPassphrase(text)}
+                  multiline={true}
+                  style={{ maxWidth: '100%', paddingRight: 40 }}
+                  maxLength={150}
                 />
-              ))}
+
+                {passphrase && (
+                  <TouchableOpacity
+                    onPress={async () => {
+                      if (passphrase) {
+                        await Clipboard.setStringAsync(passphrase)
+                          .then(() => {
+                            setIsPassphraseCopied(true);
+                          })
+                      }
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 8,
+                    }}
+                  >
+                    {
+                      isPassphraseCopied ? (
+                        <Feather name="check" size={24} color="white" />
+                      ) : (
+                        <Feather name="copy" size={24} color="white" />
+                      )
+                    }
+                  </TouchableOpacity>
+                )}
+              </View>
+
+            </View>
+            <View className="flex w-full space-y-4">
+              <View>
+                <Button
+                  outline
+                  text="Generate"
+                  textColor="primary"
+                  width="full"
+                  size="large"
+                  weight="semibold"
+                  onPress={generatePhrase} />
+              </View>
+
+              <View>
+                <Button
+                  text="Save"
+                  textColor="black"
+                  bgColor="primary"
+                  width="full"
+                  loading={loading}
+                  size="large"
+                  weight="semibold"
+                  disabled={passphrase.trim().split(/\s+/).length < 3}
+                  onPress={generateKeys} />
+              </View>
             </View>
 
-            <Button
-              text='Verify'
-              textColor='black'
-              bgColor='primary'
-              width='full'
-              size='large'
-              loading={loading}
-              weight='semibold'
-              onPress={() => {
-                const promise = VerifyCode()
-                toast.promise(promise, {
-                  loading: 'Verifying...',
-                  success: "Code Verified",
-                  error: (err) => err.toString(),
-                }, { styles: NotificationStyle })
-              }}
-            />
-          </View>
+          </>
+        )
+      }
+
+
+      {
+        step === "INPUT_PASSPHRASE" && (
+          <>
+            <View className="flex flex-col justify-center space-y-5">
+              <View className='space-y-5'>
+                <Text className="text-white text-xl font-primary-bold text-center">Enter you Recovery phrase</Text>
+                <Text className="text-white text-base font-primary-medium text-center">You can only recover your encryption keys with your recovery phrase.</Text>
+              </View>
+
+
+
+            </View>
+            <View className="flex w-full space-y-5 mt-5">
+              <View>
+
+                <TextInput
+                  placeholder="Recovery phrase"
+                  placeholderTextColor="#FFF"
+                  className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100"
+                  value={passphrase}
+                  onChangeText={(text) => setPassphrase(text)}
+                  multiline={true}
+                  autoFocus={true}
+                  maxLength={150}
+                />
+              </View>
+
+              <View>
+                <Button
+                  text="Enter"
+                  textColor="black"
+                  bgColor="primary"
+                  width="full"
+                  loading={loading}
+                  size="large"
+                  weight="semibold"
+                  onPress={DecryptPrivateKeys} />
+              </View>
+
+            </View>
+
+          </>
         )
       }
 
       {
         step === "INPUT_USERNAME" && (
-          <View className='flex-1 justify-center items-center px-6 bg-midnight-black space-y-10'>
-            <Text className='text-lg mb-4 text-white font-primary-medium text-center'>Enter a username</Text>
+          <>
+            <View className="flex flex-col justify-center space-y-5">
+              <View className='space-y-5'>
+                <Text className="text-white text-xl font-primary-bold text-center">Complete your profile</Text>
+              </View>
+              {/* add profile pic and username input */}
+              <View className="flex flex-col justify-center space-y-5">
+                <View className="flex flex-row justify-center space-x-5">
+                  <Image
+                    source={require('../assets/logo.png')}
+                    className="w-24 h-24 mb-5" />
+                </View>
+                <View className="flex flex-row justify-center space-y-5">
+                  <TextInput
+                    placeholder="Username"
+                  value={username}
+                    placeholderTextColor="#FFF"
+                    className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
+                    autoFocus={true}
+                    onChangeText={(text) => setUsername(text)} />
+                </View>
+                <View>
+                  <Button
+                    text="Complete"
+                    textColor="black"
+                    bgColor="primary"
+                    width="full"
+                    loading={loading}
+                    size="large"
+                    weight="semibold"
+                    disabled={username.length < 3}
+                    onPress={Authenticate} />
+                </View>
+              </View>
 
-            <View className='flex flex-row mb-8'>
-              <TextInput
-                placeholder='username'
-                placeholderTextColor="#FFF"
-                className='w-full p-2 text-white border-2 font-primary-medium rounded-md text-xl bg-steel-gray border-steel-gray placeholder-slate-100 mx-2'
-                autoFocus={true}
-                onChangeText={(text) => setUsername(text)}
-              />
+
             </View>
 
-            <Button
-              text='Confirm'
-              textColor='black'
-              bgColor='primary'
-              width='full'
-              size='large'
-              loading={loading}
-              weight='semibold'
-              onPress={() => {
-                const promise = Authenticate();
-                toast.promise(promise, {
-                  loading: 'signing you in...',
-                  success: "Signed In",
-                  error: (err) => err.toString(),
-                }, { styles: NotificationStyle })
-              }}
-            />
-          </View>
+
+
+          </>
         )
       }
 
 
-    </>
+
+      {/* privacy policy and terms and conditions links */}
+      <View className="flex flex-col justify-center space-y-5">
+
+
+
+        <View className="flex flex-row justify-center space-x-5">
+          <Text className="text-primary font-primary-medium">Privacy Policy</Text>
+          <Text className="text-primary font-primary-medium">Terms of Service</Text>
+        </View>
+      </View>
+    </View>
   );
 }

@@ -8,8 +8,8 @@ interface Props {
 
 export default function Widget({ text, active}: Props) {
     return (
-        <TouchableOpacity className={`px-3 py-1 ${active ? 'bg-midnight-black' :'bg-steel-gray'} rounded-md`}>
-            <Text className='text-gray-100 font-primary-semibold text-lg'>{text}</Text>
+        <TouchableOpacity className={`px-3 py-1 ${active ? 'bg-primary' :'bg-steel-gray'} rounded-md`}>
+            <Text className={`${active ? "text-black" : "text-gray-500"} font-primary-semibold text-sm`}>{text}</Text>
         </TouchableOpacity>
     )
 }

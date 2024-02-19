@@ -1,8 +1,0 @@
-mutation SendVerificationCode($phoneNumber: String!, $countryCode: String!) {
-  sendVerificationCode(phoneNumber: $phoneNumber, countryCode: $countryCode) {
-    error{
-      ...FieldErrorFragment
-    }
-    token
-  }
-}

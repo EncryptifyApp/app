@@ -10,8 +10,8 @@ const AuthContext = React.createContext<{
   session?: string | null;
   isLoading: boolean;
 } | null>({
-  authenticateUser: async () => {},
-  signOut: async () => {},
+  authenticateUser: async () => { },
+  signOut: async () => { },
   user: null,
   session: null,
   isLoading: false,
@@ -30,24 +30,23 @@ export function useSession() {
 
 export function SessionProvider(props: React.PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
-  const [user,setUser] = useState<User | null>(null);
-  const [result,reexecuteQuery] = useUserQuery();
 
-  const  {data,fetching} = result;
+  const [user, setUser] = useState<User | null>(null);
+  const [result, reexecuteQuery] = useUserQuery();
+
+  const { data, fetching } = result;
 
   useEffect(() => {
-    console.log('session',session);
-    console.log("fetching",fetching);
-    if(data?.user) {
-        setUser(data.user);
-        console.log("user found");
+    if (data?.user) {
+      setUser(data.user);
     }
-    if(!data?.user) {
+    if (fetching == false && !data?.user) {
+      console.log("session expired",session);
       console.log("no user found");
       setUser(null);
-    }
-
-  }, [data])
+      }
+   
+  }, [data, fetching])
 
   return (
     <AuthContext.Provider

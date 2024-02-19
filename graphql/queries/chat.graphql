@@ -4,6 +4,8 @@ query Chat($id: String!) {
     members {
         id
       username
+      profileUrl
+      publicKey
     }
     messages {
       content
@@ -11,7 +13,6 @@ query Chat($id: String!) {
       sender {
         id
         username
-        profileUrl
       }
     }
   }

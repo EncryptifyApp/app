@@ -7,7 +7,8 @@ import {
 } from "@stablelib/base64";
 import * as SecureStore from 'expo-secure-store';
 import { PRIVATE_KEY } from "../constants";
-
+import CryptoES from 'crypto-es';
+import { CipherParams } from "crypto-es/lib/cipher-core";
 
 setPRNG((x, n) => {
   const randomBytes = getRandomBytes(n);
@@ -68,5 +69,35 @@ export const getMySecretKey = async () => {
     return;
   }
 
-  return stringToUint8Array(keyString.toString());
+  return stringToUint8Array(keyString);
 };
+
+export const encryptPrivateKey = (privateKey: string, passphrase: string) => {
+  const encrypted = CryptoES.AES.encrypt(privateKey, passphrase).toString();
+  return encrypted;
+};
+
+export const decryptPrivateKey = (encryptedPrivateKey: string, passphrase: string) => {
+  try {
+    // Decrypt the ciphertext using AES with OpenSSL format
+    const decrypted = CryptoES.AES.decrypt(encryptedPrivateKey, passphrase, {
+      format: CryptoES.format.OpenSSL,
+    });
+
+    // Convert the decrypted bytes to a string (assuming it's UTF-8)
+    const decryptedPrivateKey = CryptoES.enc.Utf8.stringify(decrypted);
+
+    // If UTF-8 conversion fails, return the decrypted bytes in another format
+    if (decryptedPrivateKey === null) {
+      return decrypted.toString(CryptoES.enc.Hex);
+    }
+
+    return decryptedPrivateKey;
+  } catch (error) {
+    // If an error occurs during decryption, assume incorrect passphrase
+    throw new Error("Incorrect passphrase");
+  }
+};
+
+
+

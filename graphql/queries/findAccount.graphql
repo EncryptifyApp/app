@@ -1,0 +1,13 @@
+query FindAccount($accountNumber: String!) {
+    findAccount(accountNumber: $accountNumber) {
+        error {
+            ...FieldErrorFragment
+        }
+        user {
+            id
+            username
+            publicKey
+            encryptedPrivateKey
+        }
+    }
+}

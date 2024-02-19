@@ -5,6 +5,7 @@ query Chats {
     members {
         id
         username
+        publicKey
     }
     messages {
       id

@@ -1,19 +1,18 @@
-import React from 'react'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-
+import React from 'react';
+import { ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 
 interface Props {
   text?: string;
   textColor: string;
-  bgColor: string;
+  bgColor?: string;
   size: "small" | "medium" | "large";
   width: "full" | "half" | "most" | "min" | "xmin";
   weight: "regular" | "normal" | "bold" | "semibold";
   icon?: any;
-
   loading?: boolean;
   disabled?: boolean;
   onPress: any;
+  outline?: boolean; // Add the outline prop
 }
 
 const backgroundColors = {
@@ -21,7 +20,6 @@ const backgroundColors = {
   black: "bg-black",
   'midnight-black': "bg-midnight-black",
   'steel-gray': "bg-steel-gray",
-
 };
 
 const textColors = {
@@ -29,7 +27,7 @@ const textColors = {
   white: "text-white",
   black: "text-black",
   'midnight-black': "text-midnight-black",
-  red: "text-red-700"
+  red: "text-red-700",
 };
 
 const sizes = {
@@ -43,7 +41,7 @@ const widths = {
   half: "w-1/2",
   most: "w-full lg:w-2/3",
   min: "w-1/3",
-  xmin: "w-1/12"
+  xmin: "w-1/12",
 };
 
 const weights = {
@@ -52,7 +50,6 @@ const weights = {
   bold: "font-primary-bold",
   semibold: "font-primary-semibold",
 };
-
 
 function getClassName(...classes: any) {
   return classes.filter(Boolean).join(' ');
@@ -68,41 +65,47 @@ export default function Button({
   loading,
   icon,
   onPress,
-  disabled
+  disabled,
+  outline,
 }: Props) {
   let textColorClasses = textColors[textColor as keyof typeof textColors];
-  let bgcolorClasses = backgroundColors[bgColor as keyof typeof backgroundColors];
+  let bgColorClasses = backgroundColors[bgColor as keyof typeof backgroundColors];
   let widthClasses = widths[width];
   let sizeClasses = sizes[size];
   let weightClasses = weights[weight as keyof typeof weights];
   let ActivityIndicatorColor = textColor == "primary" ? "#000000" : "#ffffff";
+
   return (
     <TouchableOpacity
       disabled={disabled || loading}
       onPress={onPress}
+      style={{
+        borderWidth: outline ? 1 : 0,
+        borderColor: outline ? textColorClasses : 'transparent',
+      }}
       className={getClassName(
         'flex flex-row items-center justify-center',
-        'border border-transparent rounded-md shadow-sm capitalize',
+        'border-transparent rounded-md shadow-sm capitalize',
         'text-center transition duration-800 ease-in-out transform',
-        `${bgcolorClasses}`,
+        `${bgColorClasses}`,
         `${widthClasses}`,
         `${sizeClasses}`,
-
+        `${textColorClasses}`,
+        `${weightClasses}`,
+        outline ? 'bg-transparent border-2 border-primary text-primary' : 'bg-opacity-100',
         disabled ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'
       )}
     >
       {icon && !loading && (
-        <Text className={getClassName(`${textColorClasses}`)}>
-          {icon}
+        <Text className={getClassName(`${textColorClasses}`)}>{icon}</Text>
+      )}
+      {loading ? (
+        <ActivityIndicator color={ActivityIndicatorColor} />
+      ) : (
+        <Text className={getClassName(`${textColorClasses} ${weightClasses} uppercase text-base`)}>
+          {text}
         </Text>
       )}
-      {
-        loading ? (
-          <ActivityIndicator color={ActivityIndicatorColor} />
-        ) : <Text className={getClassName(`${textColorClasses} ${weightClasses} uppercase text-lg lg:text-xl`)}>
-        {text}
-      </Text>
-      }
-    </TouchableOpacity >
+    </TouchableOpacity>
   );
 }
