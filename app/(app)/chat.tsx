@@ -25,7 +25,7 @@ export default function chat() {
     const [toUser, setToUser] = useState<User>();
 
     const [result] = useChatQuery({
-        variables: { id: chat.id as string},
+        variables: { id: chat.id as string },
     });
     const { data } = result
 
@@ -45,9 +45,6 @@ export default function chat() {
     }, [res, messages]);
 
 
-    useEffect(() => {
-        console.log("TO USER:", toUser);
-    }, [toUser]);
     useEffect(() => {
         if (data?.chat) {
             setToUser(data.chat.members.find(u => u.id != user!.id) as User);
@@ -134,7 +131,7 @@ export default function chat() {
                 <View className="flex-row items-center space-x-3">
                     <Image source={user?.profileUrl ? user.profileUrl : require("../../assets/logo.png")} className='w-10 h-10 rounded-2xl' />
                     <View className=''>
-                        
+
                         <TouchableOpacity>
                             <Text className="font-primary-bold text-white text-xl">
                                 {toUser!.username}
@@ -158,31 +155,42 @@ export default function chat() {
             <View className="flex-1">
                 <View className="flex-1 p-4">
                     <ScrollView ref={scrollViewRef} showsVerticalScrollIndicator={false} className="flex-1">
+                        {/* TODO: change this date splitter to a seperate component */}
+                        <Text className="text-center text-gray-300 mb-2">
+                            {moment(chat.updatedAt).format('LL')}
+                        </Text>
                         {messages.map((msg: Message, index: number) => (
-                            <View
-                                key={index}
-                                className={`${msg.sender.id === user!.id ? 'justify-end items-end' : 'justify-start items-start'
-                                    } mb-2`}
-                            >
-                             
-                                {/* add reciept icon */}
-                                <View
-                                    className={`${msg.sender.id === user!.id ? 'bg-steel-gray' : 'bg-primary'
-                                        } rounded-md p-2 max-w-xs`}
-                                >
-                                    <Text className={`${msg.sender.id === user!.id ? 'text-white' : 'text-black'} font-primary-semibold text-base`}>
-                                        {msg.content}
+                            <View key={index}>
+                                {/* Check if the previous message exists and its date is different from the current one */}
+                                {index > 0 && moment(messages[index - 1].createdAt).format('LL') !== moment(msg.createdAt).format('LL') && (
+                                    <Text className="text-center text-gray-300 mb-2">
+                                        {moment(msg.createdAt).format('LL')}
                                     </Text>
+                                )}
 
-                                    <View className="flex flex-row justify-end items-center space-x-2">
-                                        <Text className={`${msg.sender.id === user!.id ? 'text-white' : 'text-black'} font-primary-regular text-xs`}>
-                                            {moment(msg.createdAt).format('LT')}
+                                <View
+                                    className={`${msg.sender.id === user!.id ? 'justify-end items-end' : 'justify-start items-start'
+                                        } mb-2`}
+                                >
+
+                                    {/* add receipt icon */}
+                                    <View
+                                        className={`${msg.sender.id === user!.id ? 'bg-steel-gray' : 'bg-primary'
+                                            } rounded-md p-2 max-w-xs`}
+                                    >
+                                        <Text className={`${msg.sender.id === user!.id ? 'text-white' : 'text-black'} font-primary-semibold text-base`}>
+                                            {msg.content}
                                         </Text>
-                                        {
-                                            msg.sender.id === user!.id ? <FontAwesome name="check" size={12} color={"white"} /> : <FontAwesome name="check" size={12} color={"black"} />
-                                        }
-                                        
 
+                                        <View className="flex flex-row justify-end items-center space-x-2">
+                                            <Text className={`${msg.sender.id === user!.id ? 'text-white' : 'text-black'} font-primary-regular text-xs`}>
+                                                {moment(msg.createdAt).format('LT')}
+                                            </Text>
+                                            {
+                                                msg.sender.id === user!.id ? <FontAwesome name="check" size={12} color={"white"} /> : <FontAwesome name="check" size={12} color={"black"} />
+                                            }
+
+                                        </View>
                                     </View>
                                 </View>
                             </View>

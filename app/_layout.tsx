@@ -6,8 +6,8 @@ import { SessionProvider } from '../context/useSession';
 import { Toasts } from '@backpackapp-io/react-native-toast';
 import { useStorageState } from '../utils/useStorageState';
 
-const httpUrl = 'http://192.168.0.109:4000/graphql';
-const wsUrl = 'ws://192.168.0.109:4000/graphql';
+const httpUrl = 'http://145.93.49.206:4000/graphql';
+const wsUrl = 'ws://145.93.49.206:4000/graphql';
 
 const Root = () => {
   const [[, session], setSession] = useStorageState('session');
