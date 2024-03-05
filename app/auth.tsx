@@ -1,4 +1,4 @@
-import { View, TextInput, Text, Image, TouchableOpacity } from 'react-native';
+import { View, TextInput, Text, Image, TouchableOpacity, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useSession } from '../context/useSession';
 import Button from '../components/Button';
@@ -8,18 +8,18 @@ import { toast } from "@backpackapp-io/react-native-toast"
 import { NotificationStyle, PRIVATE_KEY } from '../constants';
 import { decryptPrivateKey, encryptPrivateKey, generateKeyPair } from '../utils/crypto';
 import { encode } from '@stablelib/base64';
-import { generate } from "random-words";
 import { Feather } from '@expo/vector-icons';
 import { setStorageItemAsync } from '../utils/useStorageState';
 import { useRouter } from 'expo-router';
-import CryptoES from 'crypto-es';
+import { generatePhrase } from '../utils/generatePhrase';
 
 type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE' | 'INPUT_USERNAME';
 
 
 export default function Auth() {
   const router = useRouter();
-  const { authenticateUser } = useSession() || { session: null, isLoading: true };
+  const { authenticateUser } = useSession() || {
+    authenticateUser: async (sessionToken: string) => {}}
   const [step, setStep] = useState<AuthStep>('INPUT_ACCOUNT_NUMBER');
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -35,7 +35,7 @@ export default function Auth() {
 
   //keys
   const [publicKey, setPublicKey] = useState<string>('');
-  const [privateKey, setPrivateKey] = useState<string>('');
+  const [, setPrivateKey] = useState<string>('');
   const [encryptedPrivateKey, setEncryptedPrivateKey] = useState<string>('');
 
   const [, authenticate] = useAuthenticateMutation();
@@ -45,6 +45,7 @@ export default function Auth() {
   const FindAccount = async () => {
     if (accountNumber === '' || accountNumber.length != 12) {
       toast.error('Please enter a valid account number', { styles: NotificationStyle })
+      return;
     }
     try {
       setLoading(true);
@@ -67,18 +68,13 @@ export default function Auth() {
         }
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error('Error: try again later', { styles: NotificationStyle });
     } finally {
       setLoading(false);
     }
   };
 
-  //TODO: move this to a utils file
-  const generatePhrase = async () => {
-    const words = generate(6);
-    setPassphrase(words.join(" ") as string);
-  }
 
   const generateKeys = async () => {
     if (passphrase.trim().split(/\s+/).length < 3) {
@@ -119,8 +115,6 @@ export default function Auth() {
       }
     }
     catch (error) {
-
-      console.log(error);
       toast.error('Error: try again later', { styles: NotificationStyle });
     } finally {
       setLoading(false);
@@ -145,7 +139,7 @@ export default function Auth() {
       }
       if (data?.authenticate.sessionToken) {
         authenticateUser(data.authenticate.sessionToken);
-        router.replace('/');
+        router.push('/');
       }
     }
     catch (error) {
@@ -249,7 +243,11 @@ export default function Auth() {
                   width="full"
                   size="large"
                   weight="semibold"
-                  onPress={generatePhrase} />
+                  onPress={() => {
+                    generatePhrase().then((phrase) => {
+                      setPassphrase(phrase);
+                    });
+                  }} />
               </View>
 
               <View>

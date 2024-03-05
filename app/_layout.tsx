@@ -1,16 +1,16 @@
 import React, { useEffect } from 'react';
-import { Provider, createRequest, createClient, fetchExchange, cacheExchange, subscriptionExchange } from 'urql';
+import { Provider, createClient, fetchExchange, cacheExchange, subscriptionExchange } from 'urql';
 import { createClient as createWSClient } from 'graphql-ws';
 import { Slot } from 'expo-router';
 import { SessionProvider } from '../context/useSession';
 import { Toasts } from '@backpackapp-io/react-native-toast';
 import { useStorageState } from '../utils/useStorageState';
+import { httpUrl, wsUrl } from '../config';
+import { ChatProvider } from '../context/useChat';
 
-const httpUrl = 'http://145.93.49.206:4000/graphql';
-const wsUrl = 'ws://145.93.49.206:4000/graphql';
 
 const Root = () => {
-  const [[, session], setSession] = useStorageState('session');
+  const [[, session]] = useStorageState('session');
 
   // Create WebSocket client
   let wsClient: any;
@@ -20,12 +20,12 @@ const Root = () => {
       url: wsUrl,
       connectionParams: {
         authorization: session ? `${session}` : null,
-      },
+    },
       on: {connected: () => {
         console.log('WebSocket connected');
       },
       error: (err) => {
-        console.log('WebSocket error', err);
+        console.error('WebSocket error', err);
       },},
     });
 
@@ -33,7 +33,7 @@ const Root = () => {
       if (session) {
         wsClient = createWebSocketClient(session);
       }
-    };
+    }; 
 
     initWebSocketClient();
 
@@ -71,7 +71,9 @@ const Root = () => {
   return (
     <Provider value={client}>
       <SessionProvider>
+        <ChatProvider>
         <Slot />
+      </ChatProvider>
       </SessionProvider>
       <Toasts />
     </Provider>

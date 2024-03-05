@@ -1,4 +1,9 @@
+//KEYS
+export const PRIVATE_KEY = "PRIVATE_KEY";
+export const MESSAGES_KEY = "MESSAGES"
 
+
+//STYLES
 export const NotificationStyle = {
     view: {
         backgroundColor: "#191b1f",
@@ -8,5 +13,3 @@ export const NotificationStyle = {
         fontFamily: 'Rajdhani_600SemiBold',
     }
 }
-
-export const PRIVATE_KEY = "PRIVATE_KEY";

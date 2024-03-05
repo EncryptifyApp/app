@@ -10,7 +10,7 @@ const AuthContext = React.createContext<{
   session?: string | null;
   isLoading: boolean;
 } | null>({
-  authenticateUser: async () => { },
+  authenticateUser: async (sessionToken: string) => { },
   signOut: async () => { },
   user: null,
   session: null,
@@ -41,11 +41,11 @@ export function SessionProvider(props: React.PropsWithChildren) {
       setUser(data.user);
     }
     if (fetching == false && !data?.user) {
-      console.log("session expired",session);
+      console.log("session expired", session);
       console.log("no user found");
       setUser(null);
-      }
-   
+    }
+
   }, [data, fetching])
 
   return (

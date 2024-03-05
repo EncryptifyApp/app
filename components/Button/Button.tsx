@@ -3,11 +3,11 @@ import { ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 
 interface Props {
   text?: string;
-  textColor: string;
+  textColor?: string;
   bgColor?: string;
   size: "small" | "medium" | "large";
   width: "full" | "half" | "most" | "min" | "xmin";
-  weight: "regular" | "normal" | "bold" | "semibold";
+  weight?: "regular" | "normal" | "bold" | "semibold";
   icon?: any;
   loading?: boolean;
   disabled?: boolean;

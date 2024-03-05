@@ -1,17 +1,11 @@
-import { AntDesign, FontAwesome } from '@expo/vector-icons'
+import { AntDesign } from '@expo/vector-icons'
 import React from 'react'
-import { View, SafeAreaView, Text, StatusBar, TouchableOpacity, ScrollView } from 'react-native'
-import Widget from '../../components/Widget'
+import { View, SafeAreaView, Text, StatusBar, ScrollView } from 'react-native'
 
-import Button from '../../components/Button'
-import { useUsersQuery } from '../../generated/graphql'
-import Chat from '../../components/Chat'
-import Contact from '../../components/Contact'
 
 export default function contacts() {
-    const [result] = useUsersQuery();
 
-    const { data } = result;
+
 
     
     return (
@@ -39,11 +33,11 @@ export default function contacts() {
                 
                 <ScrollView className='mt-5 bg-midnight-black h-screen'>
 
-                    {
+                    {/* {
                         data?.users && data?.users.map((contact) => (
                             <Contact key={contact.id} contact={contact} />
                         ))
-                    }
+                    } */}
                 </ScrollView>
                
             </View>

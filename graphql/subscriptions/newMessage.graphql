@@ -6,6 +6,11 @@ subscription NewMessage {
         sender {
             id
             username
+            profileUrl
+            publicKey
+        }
+        chat {
+            id
         }
     }
 }
