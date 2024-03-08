@@ -41,8 +41,6 @@ export function SessionProvider(props: React.PropsWithChildren) {
       setUser(data.user);
     }
     if (fetching == false && !data?.user) {
-      console.log("session expired", session);
-      console.log("no user found");
       setUser(null);
     }
 

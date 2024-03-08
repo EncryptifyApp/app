@@ -8,7 +8,6 @@ import {
 import * as SecureStore from 'expo-secure-store';
 import { PRIVATE_KEY } from "../constants";
 import CryptoES from 'crypto-es';
-import { CipherParams } from "crypto-es/lib/cipher-core";
 
 setPRNG((x, n) => {
   const randomBytes = getRandomBytes(n);
@@ -64,7 +63,7 @@ export const getMySecretKey = async () => {
   const keyString = await SecureStore.getItemAsync(PRIVATE_KEY);
   if (!keyString) {
     alert(
-      "You haven't set your keypair yet. Go to settings, and generate a new keypair",
+      "You haven't set your keypair yet.",
     );
     return;
   }

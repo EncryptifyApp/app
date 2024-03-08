@@ -1,25 +1,31 @@
 import { Alert, SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { useSession } from '../../context/useSession'
 import { Message, User, useNewMessageSubscription } from '../../generated/graphql';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
 import Widget from '../../components/Widget';
 import Loading from '../../components/Loading';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { useChat } from '../../context/useChat';
+import Note from '../../components/Note';
+import { useRouter } from 'expo-router';
 
 
 export default function Index() {
+    const router = useRouter();
     const { user, signOut } = useSession() as { signOut: () => void, user: User | null };
+    const [tabSelected, setTabSelected] = useState<"chats" | "notes">('chats');
     const { syncing, chats, updateChats } = useChat() as { syncing: boolean, chats: any[], updateChats: (message: Message) => void };
     const [res] = useNewMessageSubscription();
 
+    const [chatIdToUpdated, setChatIdToUpdated] = useState<string | null>(null);
     useEffect(() => {
         try {
             const fetchNewMessage = async () => {
                 if (!res.data?.newMessage) return;
                 const newMessage = res.data.newMessage;
+                setChatIdToUpdated(newMessage.chat?.id!);
                 updateChats(newMessage);
             };
 
@@ -95,16 +101,16 @@ export default function Index() {
                     <View className="flex-row  justify-between py-3 space-x-2 items-center px-4">
                         <View>
                             <Text className="font-primary-semibold text-white text-xl">
-                                Recent Chats
+                                {tabSelected === 'chats' ? "Recent chats" : "Private Notes"}
                             </Text>
                         </View>
                         <Button
                             icon={<MaterialCommunityIcons name="qrcode-scan" size={24} color="#00e701" />}
                             bgColor="steel-gray"
-                            size={'medium'}
+                            size={'small'}
                             width={'xmin'}
                             onPress={() => {
-                                console.log("SCAN QR CODE")
+                                router.push('/QR');
                             }}
                         />
 
@@ -112,31 +118,48 @@ export default function Index() {
                     </View>
                     <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} className='flex-row space-x-2 mx-4'>
                         <View>
-                            <Widget text='Chats' active />
+                            <Widget text='Chats' onClick={() => setTabSelected("chats")} active={tabSelected == "chats"} />
                         </View>
                         <View>
-                            <Widget text='Notes' />
+                            <Widget text='Notes' onClick={() => setTabSelected("notes")} active={tabSelected == "notes"} />
                         </View>
 
                     </ScrollView>
-
+                    {/* Chats */}
                     {
-                        chats.length == 0 ? (
-                            <View className='flex items-center pt-32 bg-midnight-black space-y-5'>
-                                <Text className='text-2xl font-primary-semibold text-white text-center'>You have no{"\n"} conversations yet</Text>
-                                <Ionicons name="chatbox-ellipses-outline" size={38} color="white" />
-                            </View>
-                        ) : (
-                            <ScrollView
-                                className='mt-5 bg-midnight-black h-screen'>
-                                {
-                                    chats.map((chat) => (
-                                        <Chat key={chat.id} chat={chat} />
-                                    ))
-                                }
-                            </ScrollView>
+                        tabSelected === 'chats' && (
+                            chats.length === 0 ? (
+                                <View className='flex items-center pt-32 bg-midnight-black space-y-5'>
+                                    <Text className='text-2xl font-primary-semibold text-white text-center'>You have no{"\n"} chats yet</Text>
+                                    <Ionicons name="chatbox-ellipses-outline" size={38} color="white" />
+                                </View>
+                            ) :
+                                <ScrollView
+                                    className='mt-5 bg-midnight-black h-screen'>
+                                    {
+                                        chats.map((chat) => (
+                                            <Chat key={chat.id} chat={chat} chatIdToUpdated={chatIdToUpdated}/>
+                                        ))
+                                    }
+                                </ScrollView>
                         )
                     }
+                    {/* Notes */}
+                    {
+                        tabSelected === 'notes' && (
+                            <View className="grid gap-2 grid-cols-2 mt-5 mx-3 h-screen">
+                                {[1, 2, 3, 4].map((index) => (
+                                    // <Note key={index} />
+                                    <View key={index}>
+                                        <Note />
+                                    </View>
+
+))}
+                            </View>
+
+                        )
+                    }
+
                 </View>
             </SafeAreaView>
         </View>

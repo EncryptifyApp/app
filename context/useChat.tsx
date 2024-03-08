@@ -58,17 +58,17 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
             const decryptedChats = await decryptChats(localChats, user!);
             // Update state with sorted decrypted local messages
             setChats(sortChats(decryptedChats!));
-            setSyncing(false);
             if (isConnected) {
                 await fetchDataFromServer();
             }
         } catch (error) {
             console.error('Error fetching messages:', error);
+        } finally {
+            setSyncing(false);
         }
     };
 
     const fetchDataFromServer = async () => {
-        setSyncing(true);
         try {
             // Fetch messages from the server
             if (data?.chats) {
@@ -78,7 +78,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
                 await ChatService.storeMessagesLocally(serverChats);
                 //decrypt the server chats
                 const decryptedChats = await decryptChats(serverChats, user!);
-                console.log('decryptedChats', decryptedChats);
                 // Update state with sorted server messages
                 setChats(sortChats(decryptedChats!));
             }

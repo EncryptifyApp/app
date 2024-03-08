@@ -5,26 +5,34 @@ import { Chat as ChatType, User } from '../../generated/graphql'
 import { router } from 'expo-router'
 import moment from 'moment';
 import { useSession } from '../../context/useSession';
+import { useChat } from '../../context/useChat';
 
 interface Props {
     chat: ChatType,
+    chatIdToUpdated: string | null
 }
 
-export default function Chat({ chat }: Props) {
+export default function Chat({ chat, chatIdToUpdated }: Props) {
     const { user } = useSession() as { signOut: () => void, user: User | null };
     const [lastMessage, setLastMessage] = useState<string>('');
     const toUser = chat.members!.find((member) => member.id !== user!.id);
-
+    const { chats } = useChat() as { chats: ChatType[] };
     // TODO: this is temporary
     // we should remove this when we implement read receipts
     const [isNewMessage, setIsNewMessage] = useState<boolean>(false);
 
     useEffect(() => {
-        if (chat.messages!.length > 0) {
-            console.log(`NEW MESSAGE DETECTED FOR:, ${user?.username}` , chat.messages![chat.messages!.length - 1].content);
+        if (chat.messages!.length != 0) {
             setLastMessage(chat.messages![chat.messages!.length - 1].content);
         }
     }, [chat]);
+
+    useEffect(() => {
+        if (chatIdToUpdated === chat.id) {
+            setIsNewMessage(true);
+            setLastMessage(chat.messages![chat.messages!.length - 1].content);
+        }
+    }, [chatIdToUpdated, chat, chats]);
 
     if (!chat) return;
 
@@ -73,7 +81,7 @@ export default function Chat({ chat }: Props) {
                     </View>
                 </View>
 
-                <View className='flex flex-col items-end'>
+                <View className='flex flex-col items-center justify-evenly'>
                     {chat.messages!.length > 0 && (
                         <View>
                             <Text className='text-white font-primary-regular text-base'>

@@ -1,4 +1,4 @@
-// This function sorts chats by last last message date.
+// This function sorts chats by last message date.
 import { Chat } from "../generated/graphql";
 
 export const sortChats = (chats: Chat[]): Chat[] => {

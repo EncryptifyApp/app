@@ -20,21 +20,19 @@ export default function ChatScreen() {
     const data = useLocalSearchParams();
     const chatId = data["chatId"] as string;
 
-    const { getChat } = useChat() as { getChat: (chatId: string) => Chat | undefined };
+    const { getChat, chats } = useChat() as { getChat: (chatId: string) => Chat | undefined; chats: Chat[] };
     const [, sendMessage] = useSendMessageMutation();
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [toUser, setToUser] = useState<User | undefined>();
 
+    useEffect(() => {
+        scrollToBottom();
+    },[])
 
     useEffect(() => {
-        const chat = getChat(chatId);
-        if (chat) {
-            setChat(chat);
-            setMessages(chat.messages!);
-            setToUser(chat.members!.find((member) => member.id !== user!.id));
-        }
-    }, [chatId]);
+        updateChat();
+    }, [chatId,chats]);
 
     const handleSendMessage = async () => {
         if (message.trim() !== '' && toUser) {
@@ -53,8 +51,7 @@ export default function ChatScreen() {
                 setMessages([...messages, decryptedMessage!]);
 
                 // Scroll to the end
-                // @ts-ignore - scrollToEnd is not recognized by the type definition
-                scrollViewRef.current?.scrollToEnd({ animated: true });
+                scrollToBottom();
             }
 
             // Clear the input field
@@ -62,7 +59,23 @@ export default function ChatScreen() {
         }
     };
 
-    
+    const scrollToBottom = () => {
+        // @ts-ignore - scrollToEnd is not recognized by the type definition
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+    };
+
+
+    const updateChat = () => {
+        const chat = getChat(chatId);
+        if (chat) {
+            setChat(chat);
+            setMessages(chat.messages!);
+            setToUser(chat.members!.find((member) => member.id !== user!.id));
+            scrollToBottom();
+        }
+    }
+
+    if (!chat) return;
 
     return (
         <View className="flex-1 bg-midnight-black pt-10">
@@ -90,7 +103,9 @@ export default function ChatScreen() {
             {/* Messages */}
             <View className="flex-1">
                 <View className="flex-1 p-4">
-                    <ScrollView ref={scrollViewRef} showsVerticalScrollIndicator={false} className="flex-1">
+                    <ScrollView ref={scrollViewRef}
+                        showsVerticalScrollIndicator={false}
+                        className="flex-1">
                         <DateSplitter date={moment(chat?.updatedAt).format('LL')} />
                         {messages.map((msg: Message, index: number) => (
                             <View key={index}>
@@ -100,18 +115,18 @@ export default function ChatScreen() {
                                 <View
                                     className={`${msg.sender?.id === user?.id ? 'justify-end items-end' : 'justify-start items-start'} mb-2`}>
                                     <View
-                                        className={`${msg.sender?.id === user?.id ? 'bg-steel-gray' : 'bg-primary'} rounded-md p-2 max-w-xs`}>
-                                        <Text className={`${msg.sender?.id === user?.id ? 'text-white' : 'text-black'} font-primary-semibold text-base`}>
+                                        className={`${msg.sender?.id === user?.id ? 'bg-primary' : 'bg-steel-gray'} rounded-md p-2 max-w-xs`}>
+                                        <Text className={`${msg.sender?.id === user?.id ? 'text-black' : 'text-white'} font-primary-semibold text-base`}>
                                             {msg.content}
                                         </Text>
                                         <View className="flex flex-row justify-end items-center space-x-1">
-                                            <Text className={`${msg.sender?.id === user?.id ? 'text-white' : 'text-black'} font-primary-regular text-xs`}>
+                                            <Text className={`${msg.sender?.id === user?.id ? 'text-black' : 'text-white'} font-primary-regular text-xs`}>
                                                 {moment(msg.createdAt).format('HH:mm')}
                                             </Text>
                                             {msg.sender?.id === user?.id ? (
-                                                <Feather name="check" size={12} color={'white'} />
-                                            ) : (
                                                 <Feather name="check" size={12} color={'black'} />
+                                            ) : (
+                                                <Feather name="check" size={12} color={'white'} />
                                             )}
                                         </View>
                                     </View>
@@ -129,6 +144,7 @@ export default function ChatScreen() {
                     value={message}
                     placeholderTextColor="#474f54"
                     onChangeText={(text) => setMessage(text)}
+                    onFocus={() => scrollToBottom()}
                 />
                 {message.trim() !== '' && (
                     <Button
