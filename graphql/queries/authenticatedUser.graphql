@@ -1,0 +1,6 @@
+query AuthenticatedUser {
+  authenticatedUser {
+     ...userFragment
+     encryptedPrivateKey
+  }
+}

@@ -22,6 +22,7 @@
     "@urql/exchange-multipart-fetch": "^1.1.0",
     "crypto-es": "^2.1.0",
     "expo": "~49.0.15",
+    "expo-barcode-scanner": "~12.5.3",
     "expo-clipboard": "~4.3.1",
     "expo-constants": "~14.4.2",
     "expo-crypto": "~12.4.1",
@@ -45,8 +46,7 @@
     "react-native-screens": "~3.22.0",
     "react-native-web": "~0.19.6",
     "tweetnacl": "^1.0.3",
-    "urql": "^2.2.3",
-    "expo-camera": "~13.4.4"
+    "urql": "^2.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -1,36 +1,60 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, SafeAreaView, StatusBar } from 'react-native'
+import { View, Text, SafeAreaView, StatusBar, Alert, Modal } from 'react-native'
 import QRcode from 'react-native-qrcode-svg';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { useSession } from '../../context/useSession';
-import { User } from '../../generated/graphql';
-import { Camera } from 'expo-camera';
+import { User, useGetChatbyUserIdQuery } from '../../generated/graphql';
+import { BarCodeScanner } from 'expo-barcode-scanner';
+import { useRouter } from 'expo-router';
+
 
 
 export default function QR() {
+    const router = useRouter();
     const { user } = useSession() as { user: User | null };
     const [tabSelected, setTabSelected] = useState<"MYQR" | "SCANQR">("MYQR");
 
+    //user to be scanned
+    const [id, setId] = useState<string>('');
+
+
+    const [result, reexecuteQuery] = useGetChatbyUserIdQuery({ variables: { id: id }, pause: id === '' });
     //scanning the QR
     const [hasPermission, setHasPermission] = useState<any>();
     const [scanned, setScanned] = useState(false);
 
     useEffect(() => {
         if (tabSelected === 'SCANQR') {
-            const getCameraPermissions = async () => {
-                const { status } = await Camera.requestCameraPermissionsAsync();
-                setHasPermission(status === "granted");
+            const getBarCodeScannerPermissions = async () => {
+                const { status } = await BarCodeScanner.requestPermissionsAsync();
+                setHasPermission(status === 'granted');
             };
-            getCameraPermissions();
+
+            getBarCodeScannerPermissions();
         }
     }, [tabSelected]);
 
-    const handleBarCodeScanned = ({ type, data }: any) => {
+    const handleBarCodeScanned = ({ data }: { data: string }) => {
         setScanned(true);
-        console.log(`Bar code with type ${type} and data ${data} has been scanned!`);
+        const id = data;
+        if (typeof id === 'string') {
+            setId(id);
+            reexecuteQuery();
+        }
     };
+
+
+    useEffect(() => {
+        if (result.data) {
+            //do everything here
+            //get the chat
+            // store it in the context
+            // navigate the user to the chat screen
+            router.push({ pathname: "/chat", params: { chatId: JSON.stringify(result.data.getChatbyUserId?.id) } });
+        }
+    }, [result])
 
     return (
         <View className="flex-1 bg-midnight-black">
@@ -61,7 +85,7 @@ export default function QR() {
                 {/* Chats */}
                 <View className='bg-midnight-black rounded-t-2xl'>
                     {/* dash */}
-                    <View className='bg-steel-gray w-14 h-2 rounded-full mx-auto mt-4'></View>
+                    <View className='flex-1 bg-steel-gray w-14 h-2 rounded-full mx-auto mt-4'></View>
                     {/* Header */}
                     <View className="flex-col justify-center py-3 space-x-2 items-center px-4">
                         <View className="flex flex-row justify-around items-center w-full">
@@ -85,19 +109,17 @@ export default function QR() {
                     {/* My QR code */}
                     {
                         tabSelected === 'MYQR' && <View className='flex flex-col justify-center items-center'>
-                            <View className='py-5 px-8 bg-stormy-gray rounded-lg flex flex-col items-center space-y-5'>
-
-                                <Image source={require('../../assets/logo.png')} className='w-10 h-10 rounded-3xl' />
-                                <View>
+                            <View className='py-5 px-8 bg-stormy-gray rounded-lg space-y-5'>
+                                <View className='flex flex-col items-center'>
+                                    <Image source={require('../../assets/logo.png')} className='w-10 h-10 rounded-3xl' />
                                     <Text className='font-primary-bold text-white text-lg text-center'>{user?.username}</Text>
                                     <Text className='font-primary-semibold text-gray-300 text-base text-center'>Encryptify Contact</Text>
                                 </View>
                                 <View className='rounded-2xl p-2 bg-white'>
                                     <QRcode
-
                                         value={user?.id!}
                                         logo={require('../../assets/logo.png')}
-                                        logoSize={40}
+                                        logoSize={30}
                                         size={200}
                                         logoBackgroundColor='transparent'
                                     />
@@ -109,29 +131,25 @@ export default function QR() {
                         </View>
                     }
                     {/* Scan QR code */}
-                    {
-                        tabSelected === 'SCANQR' && (
-                            hasPermission ? (
-                                <View className='w-full h-screen'>
-                                <Text className='text-white text-center font-primary-semibold text-2xl'>Scan the QR code</Text>
-                                <Camera
-                                barCodeScannerSettings={{
-                                    barCodeTypes: [BarCodeScanner.Constants.BarCodeType.qr],
-                                  }}
+                    {tabSelected === 'SCANQR' && (
+                        hasPermission ? (
+                            <>
+                                <Text className='text-xl font-primary-semibold text-white text-center'>Scan the QR code</Text>
+                                <BarCodeScanner
+                                    className="h-full w-full my-auto"
                                     onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-                                    
                                 />
-                                </View>
-                            ) : (
-                                <View className='flex items-center pt-32 bg-midnight-black space-y-5'>
-                                    <Text className='text-2xl font-primary-semibold text-white text-center'>Waiting for camer  permission</Text>
-                                </View>
-                            )
+                            </>
+
+                        ) : (
+                            <View className='flex items-center pt-32 bg-midnight-black space-y-5'>
+                                <Text className='text-2xl font-primary-semibold text-white text-center'>Waiting for camera permission</Text>
+                            </View>
                         )
-                    }
+                    )}
 
                 </View>
-            </SafeAreaView>
-        </View>
+            </SafeAreaView >
+        </View >
     )
 }

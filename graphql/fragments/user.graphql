@@ -3,5 +3,4 @@ fragment userFragment on User {
   username
   profileUrl
   publicKey
-  encryptedPrivateKey
 }

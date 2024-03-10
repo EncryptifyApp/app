@@ -17,6 +17,8 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
     const [lastMessage, setLastMessage] = useState<string>('');
     const toUser = chat.members!.find((member) => member.id !== user!.id);
     const { chats } = useChat() as { chats: ChatType[] };
+
+    
     // TODO: this is temporary
     // we should remove this when we implement read receipts
     const [isNewMessage, setIsNewMessage] = useState<boolean>(false);

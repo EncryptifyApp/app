@@ -1,0 +1,5 @@
+query chat($id: String!) {
+    chat(id: $id) {
+        ...chatFragment
+    }
+}

@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import Button from '../../components/Button';
 import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useSendMessageMutation, User, Message, Chat } from '../../generated/graphql';
+import { useSendMessageMutation, User, Message, Chat, useChatQuery } from '../../generated/graphql';
 import { useSession } from '../../context/useSession';
 import moment from 'moment';
 import { decryptMessage } from '../../utils/decryptMessage';
@@ -13,26 +13,29 @@ import DateSplitter from '../../components/DateSplitter';
 import { encryptMessage } from '../../utils/encryptMessage';
 import { useChat } from '../../context/useChat';
 
+
 export default function ChatScreen() {
     const scrollViewRef = useRef(null);
     const { user } = useSession() as { signOut: () => void; user: User | null };
     const [chat, setChat] = useState<Chat>();
     const data = useLocalSearchParams();
-    const chatId = data["chatId"] as string;
+    const chatId = data["chatId"] as string
 
-    const { getChat, chats } = useChat() as { getChat: (chatId: string) => Chat | undefined; chats: Chat[] };
+    const { getChat, chats } = useChat() as { getChat: (chatId: string) => Chat | undefined; chats: Chat[]};
     const [, sendMessage] = useSendMessageMutation();
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [toUser, setToUser] = useState<User | undefined>();
 
-    useEffect(() => {
+    const [result,reexecuteQuery] = useChatQuery({ variables: { id: chatId }, pause: chatId === '' });
+
+     useEffect(() => {
         scrollToBottom();
-    },[])
+    }, [])
 
     useEffect(() => {
         updateChat();
-    }, [chatId,chats]);
+    }, [chatId, chats]);
 
     const handleSendMessage = async () => {
         if (message.trim() !== '' && toUser) {
@@ -66,16 +69,36 @@ export default function ChatScreen() {
 
 
     const updateChat = () => {
+        // Get chat from context
         const chat = getChat(chatId);
         if (chat) {
             setChat(chat);
             setMessages(chat.messages!);
             setToUser(chat.members!.find((member) => member.id !== user!.id));
             scrollToBottom();
+        } else {
+            reexecuteQuery();
+            const { data } = result;
+            console.log("DATA", data); 
+            if (data?.chat) {
+                setChat(data.chat);
+                setMessages(data.chat.messages!);
+                setToUser(data.chat.members!.find((member) => member.id !== user!.id));
+                scrollToBottom();
+            }
         }
     }
 
-    if (!chat) return;
+
+
+    if (!chat) return (
+        <View className="flex-1 bg-midnight-black">
+            <View className="flex-1 bg-midnight-black justify-center items-center">
+                <Text className="font-primary-semibold text-white text-lg">Loading...</Text>
+            </View>
+        </View>
+    
+    );
 
     return (
         <View className="flex-1 bg-midnight-black pt-10">
@@ -107,7 +130,7 @@ export default function ChatScreen() {
                         showsVerticalScrollIndicator={false}
                         className="flex-1">
                         <DateSplitter date={moment(chat?.updatedAt).format('LL')} />
-                        {messages.map((msg: Message, index: number) => (
+                        {messages.length != 0 ? messages.map((msg: Message, index: number) => (
                             <View key={index}>
                                 {index > 0 && moment(messages[index - 1].createdAt).format('LL') !== moment(msg.createdAt).format('LL') && (
                                     <DateSplitter date={moment(msg.createdAt).format('LL')} />
@@ -132,7 +155,11 @@ export default function ChatScreen() {
                                     </View>
                                 </View>
                             </View>
-                        ))}
+                        )) :
+                            <View className="flex flex-col justify-center items-center">
+                                <Text className="font-primary-semibold text-white text-lg">No messages yet</Text>
+                            </View>
+                        }
                     </ScrollView>
                 </View>
             </View>

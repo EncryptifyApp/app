@@ -1,4 +1,4 @@
-import { View, TextInput, Text, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, TextInput, Text, Image, TouchableOpacity } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useSession } from '../context/useSession';
 import Button from '../components/Button';
@@ -25,8 +25,7 @@ export default function Auth() {
 
   //account number
   const [accountNumber, setAccountNumber] = useState<string>('');
-  const [paused, setPaused] = useState(true);
-  const [result, reexecuteQuery] = useFindAccountQuery({ variables: { accountNumber: accountNumber }, pause: paused });
+  const [result, reexecuteQuery] = useFindAccountQuery({ variables: { accountNumber: accountNumber }, pause: accountNumber === ''});
 
   //passphrase
   const [passphrase, setPassphrase] = useState<string>('');
@@ -49,7 +48,6 @@ export default function Auth() {
     }
     try {
       setLoading(true);
-      setPaused(false);
       reexecuteQuery();
       const { data } = result;
 
@@ -179,7 +177,7 @@ export default function Auth() {
             size="large"
             weight="semibold"
             disabled={accountNumber.length !== 12}
-            onPress={FindAccount} />
+            onPress={FindAccount}/>
           <Text className="text-white text-base font-primary-medium text-center mt-8">If you do not have an account number, you can acquire one through our official website.</Text>
         </>
 

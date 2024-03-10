@@ -15,17 +15,20 @@ const ChatContext = createContext<{
     chats: Chat[] | null,
     updateChats: (message: Message) => void,
     syncing: boolean,
-    getChat: (chatId: string) => Chat | undefined
+    getChat: (chatId: string) => Chat | undefined,
+    addNewChat: (newChat: Chat) => void
 } | null>({
     chats: null,
     updateChats: () => { },
     syncing: false,
-    getChat: () => undefined
+    getChat: () => undefined,
+    addNewChat: () => { }
 });
 
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const { user } = useSession() as { user: User | null };
+    
     const [isConnected, setIsConnected] = useState<boolean>();
     const [chats, setChats] = useState<Chat[]>([]);
     const [syncing, setSyncing] = useState<boolean>(true);
@@ -48,7 +51,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         if (user) {
             fetchDataFromLocalStorage();
         }
-    }, [user,data]);
+    }, [user]);
 
     const fetchDataFromLocalStorage = async () => {
         try {
@@ -94,7 +97,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         const updatedChats = [...chats!];
         const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
         const chat = updatedChats[chatIndex];
-        const toUser = chat.members?.find((member) => member.id !== user?.id);
+        const toUser = chat ? chat.members?.find((member) => member.id !== user?.id) : newMessage.chat?.members!.find((member) => member.id !== user?.id);
         const decryptedMessage = await decryptMessage(newMessage, toUser!);
 
         // If the chat exists, update it with the new message
@@ -111,13 +114,21 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         await ChatService.addMessageToChatStorage(newMessage);
     };
 
-
-    const getChat = (chatId: string) => {
-        return chats?.find((chat) => chat.id === chatId);
+    const addNewChat = async (newChat: Chat) => {
+        const updatedChats = [...chats!];
+        updatedChats.unshift(newChat);
+        setChats(updatedChats);
+        await ChatService.addChatToStorage(newChat);
     }
 
+
+    const getChat = (chatId: string) => {
+        const chat = chats?.find((chat) => chat.id === chatId);
+        return chat;
+    };
+
     return (
-        <ChatContext.Provider value={{ chats, updateChats, syncing, getChat}}>
+        <ChatContext.Provider value={{ chats, updateChats, syncing, getChat, addNewChat}}>
             {children}
         </ChatContext.Provider>
     );

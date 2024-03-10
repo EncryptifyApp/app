@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStorageState } from '../utils/useStorageState';
-import { User, useUserQuery } from '../generated/graphql';
+import { User, useAuthenticatedUserQuery } from '../generated/graphql';
 
 
 const AuthContext = React.createContext<{
@@ -32,15 +32,15 @@ export function SessionProvider(props: React.PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
 
   const [user, setUser] = useState<User | null>(null);
-  const [result, reexecuteQuery] = useUserQuery();
+  const [result, reexecuteQuery] = useAuthenticatedUserQuery();
 
   const { data, fetching } = result;
 
   useEffect(() => {
-    if (data?.user) {
-      setUser(data.user);
+    if (data?.authenticatedUser) {
+      setUser(data.authenticatedUser);
     }
-    if (fetching == false && !data?.user) {
+    if (fetching == false && !data?.authenticatedUser) {
       setUser(null);
     }
 

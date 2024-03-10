@@ -18,6 +18,7 @@ interface Props {
 const backgroundColors = {
   primary: "bg-primary",
   black: "bg-black",
+  red: 'bg-red-400',
   'midnight-black': "bg-midnight-black",
   'steel-gray': "bg-steel-gray",
 };

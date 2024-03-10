@@ -11,6 +11,12 @@ subscription NewMessage {
         }
         chat {
             id
+            members {
+                id
+                username
+                profileUrl
+                publicKey
+            }
         }
     }
 }

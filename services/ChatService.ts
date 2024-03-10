@@ -68,6 +68,18 @@ class ChatService {
   }
 
 
+  async addChatToStorage(newChat: Chat) {
+    try {
+      const storedValue = await AsyncStorage.getItem(this.CHATS_KEY);
+      const chats = storedValue ? JSON.parse(storedValue) : [];
+      chats.unshift(newChat);
+      await this.storeMessagesLocally(chats);
+    } catch (error) {
+      console.error('Error adding chat to storage:', error);
+      throw error;
+    }
+  }
+
   //TODO: Implement logic to sync messages with the server
   // async syncMessagesWithServer(chats:Chat[]) {
   //   try {

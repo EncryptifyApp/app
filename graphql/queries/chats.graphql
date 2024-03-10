@@ -1,24 +1,5 @@
 query Chats {
     chats {
-        id
-        updatedAt
-        createdAt
-    members {
-        id
-        username
-        profileUrl
-        publicKey
-    }
-    messages {
-      id
-      content
-      createdAt
-      sender {
-        id
-        username
-        profileUrl
-        publicKey
-      }
-    }
+        ...chatFragment
     }
 }
