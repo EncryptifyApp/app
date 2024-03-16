@@ -5,15 +5,17 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { useSession } from '../../context/useSession';
-import { User, useGetChatbyUserIdQuery } from '../../generated/graphql';
+import { Chat, User, useGetChatbyUserIdQuery } from '../../generated/graphql';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useRouter } from 'expo-router';
+import { useChat } from '../../context/useChat';
 
 
 
 export default function QR() {
     const router = useRouter();
     const { user } = useSession() as { user: User | null };
+    const {getChat, addNewChat} = useChat() as {getChat: (id: string) => Chat | undefined, addNewChat: (chat: Chat) => void};
     const [tabSelected, setTabSelected] = useState<"MYQR" | "SCANQR">("MYQR");
 
     //user to be scanned
@@ -47,13 +49,22 @@ export default function QR() {
 
 
     useEffect(() => {
-        if (result.data) {
-            //do everything here
-            //get the chat
-            // store it in the context
-            // navigate the user to the chat screen
-            router.push({ pathname: "/chat", params: { chatId: JSON.stringify(result.data.getChatbyUserId?.id) } });
+        const handleBarCodeScanned = () => {
+            if (result.data) {
+                //get the chat
+                const chatId = result.data.getChatbyUserId?.id;
+                const chat = getChat(chatId!);
+                if (chat) {
+                    //navigate the user to the chat screen
+                    router.push({ pathname: "/chat", params: { chatId: chatId } });
+                }
+                else {
+                    addNewChat(result.data.getChatbyUserId!);
+                    router.push({ pathname: "/chat", params: { chatId: chatId } });
+                }
+            }   
         }
+        handleBarCodeScanned();
     }, [result])
 
     return (

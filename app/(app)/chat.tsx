@@ -1,11 +1,11 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import Button from '../../components/Button';
 import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useSendMessageMutation, User, Message, Chat, useChatQuery } from '../../generated/graphql';
+import { useSendMessageMutation, User, Message, Chat } from '../../generated/graphql';
 import { useSession } from '../../context/useSession';
 import moment from 'moment';
 import { decryptMessage } from '../../utils/decryptMessage';
@@ -27,7 +27,6 @@ export default function ChatScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [toUser, setToUser] = useState<User | undefined>();
 
-    const [result,reexecuteQuery] = useChatQuery({ variables: { id: chatId }, pause: chatId === '' });
 
      useEffect(() => {
         scrollToBottom();
@@ -76,16 +75,6 @@ export default function ChatScreen() {
             setMessages(chat.messages!);
             setToUser(chat.members!.find((member) => member.id !== user!.id));
             scrollToBottom();
-        } else {
-            reexecuteQuery();
-            const { data } = result;
-            console.log("DATA", data); 
-            if (data?.chat) {
-                setChat(data.chat);
-                setMessages(data.chat.messages!);
-                setToUser(data.chat.members!.find((member) => member.id !== user!.id));
-                scrollToBottom();
-            }
         }
     }
 

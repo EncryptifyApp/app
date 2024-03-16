@@ -30,7 +30,7 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
     }, [chat]);
 
     useEffect(() => {
-        if (chatIdToUpdated === chat.id) {
+        if (chatIdToUpdated === chat.id && chat.messages!.length != 0) {
             setIsNewMessage(true);
             setLastMessage(chat.messages![chat.messages!.length - 1].content);
         }

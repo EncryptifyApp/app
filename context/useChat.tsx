@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Chat, Message, User, useChatsQuery } from '../generated/graphql';
+import { Chat, Message, User, useChatQuery, useChatsQuery } from '../generated/graphql';
 import NetInfo from '@react-native-community/netinfo';
 import ChatService from '../services/ChatService';
 import { sortChats } from '../utils/sortChats';
@@ -28,13 +28,15 @@ const ChatContext = createContext<{
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const { user } = useSession() as { user: User | null };
-    
+
     const [isConnected, setIsConnected] = useState<boolean>();
     const [chats, setChats] = useState<Chat[]>([]);
     const [syncing, setSyncing] = useState<boolean>(true);
     const [result] = useChatsQuery();
     const { data } = result;
-    // const [res] = useNewMessageSubscription();
+
+    const [chatId, setChatId] = useState<string>('');
+    const [res, executeQuery] = useChatQuery({ variables: { id: chatId } });
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
@@ -46,6 +48,13 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         };
     }, [])
 
+    useEffect(() => {
+        if (chatId !== '') {
+            console.log(chatId);
+            console.log("RUNNING")
+            executeQuery();
+        }
+    }, [chatId]);
 
     useEffect(() => {
         if (user) {
@@ -76,7 +85,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
             // Fetch messages from the server
             if (data?.chats) {
                 const serverChats = data.chats;
-                
+
                 // Store server chats encrypted in local storage
                 await ChatService.storeMessagesLocally(serverChats);
                 //decrypt the server chats
@@ -91,28 +100,31 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-
     const updateChats = async (newMessage: Message) => {
-        //1. we need to decrypt the message and update the chat with the new message
         const updatedChats = [...chats!];
         const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
-        const chat = updatedChats[chatIndex];
-        const toUser = chat ? chat.members?.find((member) => member.id !== user?.id) : newMessage.chat?.members!.find((member) => member.id !== user?.id);
-        const decryptedMessage = await decryptMessage(newMessage, toUser!);
-
-        // If the chat exists, update it with the new message
+        let chat = updatedChats[chatIndex];
+        let toUser;
+    
         if (chatIndex !== -1) {
+            toUser = chat.members?.find((member) => member.id !== user?.id)
+            const decryptedMessage = await decryptMessage(newMessage, toUser!);
             const existingChat = updatedChats[chatIndex];
             existingChat.messages = [...existingChat.messages as Message[], decryptedMessage as Message];
-            // Move the chat to the beginning of the array
             updatedChats.splice(chatIndex, 1);
             updatedChats.unshift(existingChat);
+        } else {
+            setChatId(newMessage.chat!.id);
+            const { data } = res;
+            console.log("DATA",data)
+            chat = data!.chat!;
+            toUser = chat.members?.find((member) => member.id !== user?.id);
         }
+    
         setChats(updatedChats);
-
-        //2. we need to store the encrypted message in local storage
         await ChatService.addMessageToChatStorage(newMessage);
     };
+    
 
     const addNewChat = async (newChat: Chat) => {
         const updatedChats = [...chats!];
@@ -128,7 +140,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <ChatContext.Provider value={{ chats, updateChats, syncing, getChat, addNewChat}}>
+        <ChatContext.Provider value={{ chats, updateChats, syncing, getChat, addNewChat }}>
             {children}
         </ChatContext.Provider>
     );
