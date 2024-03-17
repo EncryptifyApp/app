@@ -18,7 +18,7 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
     const toUser = chat.members!.find((member) => member.id !== user!.id);
     const { chats } = useChat() as { chats: ChatType[] };
 
-    
+
     // TODO: this is temporary
     // we should remove this when we implement read receipts
     const [isNewMessage, setIsNewMessage] = useState<boolean>(false);
@@ -69,21 +69,21 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
                 <View className='flex flex-row space-x-3 items-center w-3/4'>
                     <Image
                         source={toUser!.profileUrl ? toUser!.profileUrl : require("../../assets/logo.png")}
-                        className='w-14 h-14 rounded-3xl'
+                        className='w-12 h-12 rounded-3xl'
                     />
                     <View className='flex-1'>
-                        <Text className='text-white font-primary-bold text-lg'>{toUser!.username}</Text>
+                        <Text className='text-white font-primary-bold text-base'>{toUser!.username}</Text>
                         <Text
                             numberOfLines={1}
                             ellipsizeMode='tail'
-                            className='text-gray-400 font-primary-regular text-base overflow-hidden whitespace-nowrap overflow-ellipsis'
+                            className={`${isNewMessage ? "font-primary-semibold" : "font-primary-regular"} text-gray-400 text-base overflow-hidden whitespace-nowrap overflow-ellipsis`}
                         >
                             {lastMessage}
                         </Text>
                     </View>
                 </View>
 
-                <View className='flex flex-col items-center justify-evenly'>
+                <View className={`flex flex-col items-center ${isNewMessage ? "justify-around" : "justify-start"}`}>
                     {chat.messages!.length > 0 && (
                         <View>
                             <Text className='text-white font-primary-regular text-base'>
@@ -93,7 +93,7 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
                     )}
 
                     {isNewMessage && chat.messages![chat.messages!.length - 1].sender.id !== user?.id && (
-                        <View className='rounded-full bg-primary px-2'>
+                        <View className='rounded-full bg-primary px-1.5'>
                             <Text className='font-primary-bold text-center text-sm'>E</Text>
                         </View>
                     )}

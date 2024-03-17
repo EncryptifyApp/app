@@ -51,6 +51,16 @@ export default function QR() {
     useEffect(() => {
         const handleBarCodeScanned = () => {
             if (result.data) {
+                if(result.data.getChatbyUserId === null){
+                    Alert.alert("Not a valid QR code", "The user you are trying to reach is not found. Please try again", [
+                        {
+                            text: "OK",
+                            onPress: () => setScanned(false)
+                        }
+                    ]);
+
+                    return;
+                }
                 //get the chat
                 const chatId = result.data.getChatbyUserId?.id;
                 const chat = getChat(chatId!);

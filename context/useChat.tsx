@@ -36,7 +36,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const { data } = result;
 
     const [chatId, setChatId] = useState<string>('');
-    const [res, executeQuery] = useChatQuery({ variables: { id: chatId } });
+    const [res, executeQuery] = useChatQuery({ variables: { id: chatId }, pause: chatId === ''});
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
@@ -50,8 +50,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         if (chatId !== '') {
-            console.log(chatId);
-            console.log("RUNNING")
             executeQuery();
         }
     }, [chatId]);
@@ -70,13 +68,13 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
             const decryptedChats = await decryptChats(localChats, user!);
             // Update state with sorted decrypted local messages
             setChats(sortChats(decryptedChats!));
+
+            setSyncing(false);
             if (isConnected) {
                 await fetchDataFromServer();
             }
         } catch (error) {
             console.error('Error fetching messages:', error);
-        } finally {
-            setSyncing(false);
         }
     };
 
