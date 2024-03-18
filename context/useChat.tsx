@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Chat, Message, User, useChatQuery, useChatsQuery } from '../generated/graphql';
 import NetInfo from '@react-native-community/netinfo';
 import ChatService from '../services/ChatService';
@@ -6,6 +6,7 @@ import { sortChats } from '../utils/sortChats';
 import { decryptChats } from '../utils/decryptChats';
 import { useSession } from './useSession';
 import { decryptMessage } from '../utils/decryptMessage';
+import { decryptChat } from '../utils/decryptChat';
 
 
 // TODO: sync the messages between the server and client
@@ -36,7 +37,40 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const { data } = result;
 
     const [chatId, setChatId] = useState<string>('');
-    const [res, executeQuery] = useChatQuery({ variables: { id: chatId }, pause: chatId === ''});
+    const [res, reexecuteQuery] = useChatQuery({ variables: { id: chatId }, pause: chatId === '' });
+    const reexecuteQueryRef = useRef(reexecuteQuery);
+
+    useEffect(() => {
+        reexecuteQueryRef.current = reexecuteQuery;
+    }, [reexecuteQuery]);
+
+    useEffect(() => {
+        if (chatId !== '') {
+            if (reexecuteQueryRef.current) {
+                reexecuteQueryRef.current();
+            }
+        }
+    }, [chatId]);
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const { data } = res;
+            if (data) {
+                const chat = data.chat!;
+                const toUser = chat.members?.find((member) => member.id !== user?.id);
+                const decryptedChat = await decryptChat(chat, toUser!);
+                const updatedChats = [decryptedChat,...chats!];
+                // Update state with sorted decrypted local messages
+                setChats(sortChats(updatedChats as Chat[]));
+                await ChatService.storeMessagesLocally(updatedChats as Chat[]);
+            }
+        };
+    
+        fetchData();
+    }, [res]);
+    
+
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
@@ -48,11 +82,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         };
     }, [])
 
-    useEffect(() => {
-        if (chatId !== '') {
-            executeQuery();
-        }
-    }, [chatId]);
+
 
     useEffect(() => {
         if (user) {
@@ -101,28 +131,31 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const updateChats = async (newMessage: Message) => {
         const updatedChats = [...chats!];
         const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
-        let chat = updatedChats[chatIndex];
+        let chat;
         let toUser;
     
         if (chatIndex !== -1) {
-            toUser = chat.members?.find((member) => member.id !== user?.id)
+            // Update existing chat with the new message
+            chat = updatedChats[chatIndex];
+            toUser = chat.members?.find((member) => member.id !== user?.id);
             const decryptedMessage = await decryptMessage(newMessage, toUser!);
             const existingChat = updatedChats[chatIndex];
             existingChat.messages = [...existingChat.messages as Message[], decryptedMessage as Message];
+            // Move the chat to the beginning of the array
             updatedChats.splice(chatIndex, 1);
             updatedChats.unshift(existingChat);
         } else {
+            // Add new chat with the new message
             setChatId(newMessage.chat!.id);
-            const { data } = res;
-            console.log("DATA",data)
-            chat = data!.chat!;
-            toUser = chat.members?.find((member) => member.id !== user?.id);
         }
     
+        // Update state with the updated chats
         setChats(updatedChats);
+        // Add the new message to local storage
         await ChatService.addMessageToChatStorage(newMessage);
     };
     
+
 
     const addNewChat = async (newChat: Chat) => {
         const updatedChats = [...chats!];

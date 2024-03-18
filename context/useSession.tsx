@@ -40,9 +40,9 @@ export function SessionProvider(props: React.PropsWithChildren) {
     if (data?.authenticatedUser) {
       setUser(data.authenticatedUser);
     }
-    if (fetching == false && !data?.authenticatedUser) {
+    else if (fetching == false && !data?.authenticatedUser) {
       setUser(null);
-    }
+    } 
 
   }, [data, fetching])
 
