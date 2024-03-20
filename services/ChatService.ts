@@ -5,7 +5,7 @@ class ChatService {
 
   CHATS_KEY = 'chats';
 
-  async storeMessagesLocally(chats:Chat[]) {
+  async storeChatsLocally(chats:Chat[]) {
     try {
       const jsonValue = JSON.stringify(chats);
       await AsyncStorage.setItem(this.CHATS_KEY, jsonValue);
@@ -37,7 +37,7 @@ class ChatService {
       }
   
       // Store the updated chats locally
-      await this.storeMessagesLocally(chats);
+      await this.storeChatsLocally(chats);
     } catch (error) {
       console.error('Error adding message to chat locally:', error);
       throw error;
@@ -73,7 +73,7 @@ class ChatService {
       const storedValue = await AsyncStorage.getItem(this.CHATS_KEY);
       const chats = storedValue ? JSON.parse(storedValue) : [];
       chats.unshift(newChat);
-      await this.storeMessagesLocally(chats);
+      await this.storeChatsLocally(chats);
     } catch (error) {
       console.error('Error adding chat to storage:', error);
       throw error;

@@ -8,7 +8,7 @@ interface Props {
 
 export default function DateSplitter({ date }: Props) {
     return (
-        <Text className="text-center text-sm font-primary-semibold text-gray-300 mb-2">
+        <Text className="text-center text-sm font-primary-semibold text-gray-300 mb-3 mt-1">
             {date}
         </Text>
     )

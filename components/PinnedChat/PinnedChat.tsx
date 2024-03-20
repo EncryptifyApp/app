@@ -7,7 +7,7 @@ export default function PinnedChat() {
         <TouchableOpacity className="flex flex-col bg-midnight-black rounded-lg px-2 py-5 space-y-2">
             <View className="flex flex-row items-cente space-x-2">
 
-                <Image className="w-6 h-6 rounded-full" source={require("../../assets/logo.png")} />
+                <Image className="w-6 h-6 rounded-full" source={require("../../assets/images/logo.png")} />
                 <Text className="text-white text-center font-primary-semibold text-base">Mike</Text>
             </View>
             <View className="flex flex-row items-center space-x-2">

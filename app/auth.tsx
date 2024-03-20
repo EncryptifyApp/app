@@ -159,7 +159,7 @@ export default function Auth() {
     <View className="flex-1 items-center justify-center px-8 bg-midnight-black space-y-20">
       {step === 'INPUT_ACCOUNT_NUMBER' && (
         <><Image
-          source={require('../assets/logo.png')}
+          source={require('../assets/images/logo.png')}
           className="w-24 h-24 mb-5" /><View className="flex flex-row justify-center my-5 text-white">
             <TextInput
               placeholder="Account number"
@@ -323,7 +323,7 @@ export default function Auth() {
               <View className="flex flex-col justify-center space-y-5">
                 <View className="flex flex-row justify-center space-x-5">
                   <Image
-                    source={require('../assets/logo.png')}
+                    source={require('../assets/images/logo.png')}
                     className="w-24 h-24 mb-5" />
                 </View>
                 <View className="flex flex-row justify-center space-y-5">

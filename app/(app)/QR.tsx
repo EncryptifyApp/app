@@ -132,14 +132,14 @@ export default function QR() {
                         tabSelected === 'MYQR' && <View className='flex flex-col justify-center items-center'>
                             <View className='py-5 px-8 bg-stormy-gray rounded-lg space-y-5'>
                                 <View className='flex flex-col items-center'>
-                                    <Image source={require('../../assets/logo.png')} className='w-10 h-10 rounded-3xl' />
+                                    <Image source={require('../../assets/images/logo.png')} className='w-10 h-10 rounded-3xl' />
                                     <Text className='font-primary-bold text-white text-lg text-center'>{user?.username}</Text>
                                     <Text className='font-primary-semibold text-gray-300 text-base text-center'>Encryptify Contact</Text>
                                 </View>
                                 <View className='rounded-2xl p-2 bg-white'>
                                     <QRcode
                                         value={user?.id!}
-                                        logo={require('../../assets/logo.png')}
+                                        logo={require('../../assets/images/logo.png')}
                                         logoSize={30}
                                         size={200}
                                         logoBackgroundColor='transparent'

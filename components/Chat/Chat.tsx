@@ -68,7 +68,7 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
             <View className='flex flex-row justify-between bg-midnight-black py-2 px-3'>
                 <View className='flex flex-row space-x-3 items-center w-3/4'>
                     <Image
-                        source={toUser!.profileUrl ? toUser!.profileUrl : require("../../assets/logo.png")}
+                        source={toUser!.profileUrl ? toUser!.profileUrl : require("../../assets/images/logo.png")}
                         className='w-12 h-12 rounded-3xl'
                     />
                     <View className='flex-1'>
@@ -97,6 +97,14 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
                             <Text className='font-primary-bold text-center text-sm'>E</Text>
                         </View>
                     )}
+
+                    {
+                        isNewMessage && chat.messages![chat.messages!.length - 1].sender.id === user?.id && (
+                            <View className='rounded-full bg-primary px-1.5'>
+                                <Text className='font-primary-bold text-center text-sm'>S</Text>
+                            </View>
+                        )
+                    }
                 </View>
             </View>
         </TouchableOpacity>

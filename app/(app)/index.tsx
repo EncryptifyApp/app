@@ -20,29 +20,26 @@ export default function Index() {
     const [res] = useNewMessageSubscription();
 
     const [chatIdToUpdated, setChatIdToUpdated] = useState<string | null>(null);
+
+    //TODO: remove this from here
+    const [processedMessages, setProcessedMessages] = useState(new Set());
     useEffect(() => {
-        try {
-            const fetchNewMessage = async () => {
-                if (!res.data?.newMessage) return;
-                const newMessage = res.data.newMessage;
-                setChatIdToUpdated(newMessage.chat?.id!);
-                updateChats(newMessage);
-            };
+        if (!res.data?.newMessage || processedMessages.has(res.data.newMessage.id)) return;
 
-            fetchNewMessage();
-        } catch (error) {
-            console.error("Error rendering:", error);
-        }
-
-
-    }, [res]);
+        // Add the new message id to the set of processed messages
+        setProcessedMessages(prevMessages => new Set(prevMessages).add(res.data!.newMessage.id));
+        
+        // Execute updateChats only for new messages
+        setChatIdToUpdated(res.data.newMessage.chat?.id!);
+        updateChats(res.data.newMessage);
+    }, [res, processedMessages]);
 
     //Sign out
     const SignOut = () =>
         Alert.alert('Signing out', 'Do you want to sign out?', [
             {
                 text: 'Cancel',
-                onPress: () => console.log('Cancel Signing out'),
+                onPress: () => {},
                 style: 'cancel',
             },
             { text: 'Yes', onPress: () => signOut() },

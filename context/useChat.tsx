@@ -58,12 +58,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
             const { data } = res;
             if (data) {
                 const chat = data.chat!;
-                const toUser = chat.members?.find((member) => member.id !== user?.id);
-                const decryptedChat = await decryptChat(chat, toUser!);
-                const updatedChats = [decryptedChat,...chats!];
-                // Update state with sorted decrypted local messages
-                setChats(sortChats(updatedChats as Chat[]));
-                await ChatService.storeMessagesLocally(updatedChats as Chat[]);
+                const decryptedChat = await decryptChat(chat, user!);
+                setChats([...chats, decryptedChat!]);
+                await ChatService.addChatToStorage(chat);
             }
         };
     
@@ -94,6 +91,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             // Fetch chats from local storage
             const localChats = await ChatService.getLocalChats();
+            console.log("LOCAL CHATS", localChats);
             // Decrypt local chats
             const decryptedChats = await decryptChats(localChats, user!);
             // Update state with sorted decrypted local messages
@@ -115,7 +113,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
                 const serverChats = data.chats;
 
                 // Store server chats encrypted in local storage
-                await ChatService.storeMessagesLocally(serverChats);
+                await ChatService.storeChatsLocally(serverChats);
                 //decrypt the server chats
                 const decryptedChats = await decryptChats(serverChats, user!);
                 // Update state with sorted server messages
@@ -131,13 +129,13 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const updateChats = async (newMessage: Message) => {
         const updatedChats = [...chats!];
         const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
-        let chat;
-        let toUser;
-    
+
+        console.log("CHAT INDEX", chatIndex);
         if (chatIndex !== -1) {
             // Update existing chat with the new message
-            chat = updatedChats[chatIndex];
-            toUser = chat.members?.find((member) => member.id !== user?.id);
+            console.log("UPDATING EXISITNIG CHAT")
+            const chat = updatedChats[chatIndex];
+            const toUser = chat.members?.find((member) => member.id !== user?.id);
             const decryptedMessage = await decryptMessage(newMessage, toUser!);
             const existingChat = updatedChats[chatIndex];
             existingChat.messages = [...existingChat.messages as Message[], decryptedMessage as Message];
@@ -146,6 +144,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
             updatedChats.unshift(existingChat);
         } else {
             // Add new chat with the new message
+            console.log("ADDING NEW CHAT");
             setChatId(newMessage.chat!.id);
         }
     
@@ -159,6 +158,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
     const addNewChat = async (newChat: Chat) => {
         const updatedChats = [...chats!];
+        console.log("ADDING NEW CHAT");
+        console.log(newChat)
         updatedChats.unshift(newChat);
         setChats(updatedChats);
         await ChatService.addChatToStorage(newChat);

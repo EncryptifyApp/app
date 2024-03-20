@@ -4,11 +4,11 @@
     "slug": "app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "your-app-scheme",
     "splash": {
-      "image": "./assets/encryptifySplash.png",
+      "image": "./assets/images/encryptifySplash.png",
       "resizeMode": "fill",
       "backgroundColor": "#000000"
     },
@@ -20,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
     },

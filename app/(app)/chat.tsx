@@ -21,14 +21,14 @@ export default function ChatScreen() {
     const data = useLocalSearchParams();
     const chatId = data["chatId"] as string
 
-    const { getChat, chats } = useChat() as { getChat: (chatId: string) => Chat | undefined; chats: Chat[]};
+    const { getChat, chats } = useChat() as { getChat: (chatId: string) => Chat | undefined; chats: Chat[] };
     const [, sendMessage] = useSendMessageMutation();
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [toUser, setToUser] = useState<User | undefined>();
 
 
-     useEffect(() => {
+    useEffect(() => {
         scrollToBottom();
     }, [])
 
@@ -86,7 +86,7 @@ export default function ChatScreen() {
                 <Text className="font-primary-semibold text-white text-lg">Loading...</Text>
             </View>
         </View>
-    
+
     );
 
     return (
@@ -94,12 +94,11 @@ export default function ChatScreen() {
             {/* Header */}
             <View className="flex-row justify-between py-3 space-x-2 items-center px-4">
                 <View className="flex-row items-center space-x-3">
-                    <Image source={toUser?.profileUrl || require('../../assets/logo.png')} className="w-10 h-10 rounded-2xl" />
+                    <Image source={toUser?.profileUrl || require('../../assets/images/logo.png')} className="w-10 h-10 rounded-2xl" />
                     <View className="">
                         <TouchableOpacity>
                             <Text className="font-primary-bold text-white text-xl">{toUser?.username}</Text>
                         </TouchableOpacity>
-                        <Text className="font-primary-bold text-primary text-xs">Online</Text>
                     </View>
                 </View>
                 <Button
@@ -153,26 +152,40 @@ export default function ChatScreen() {
                 </View>
             </View>
             {/* Message Input */}
-            <View className="flex flex-row items-center space-x-2 py-2 mx-3">
+            <View className="flex flex-row items-center my-2 mx-5">
                 <TextInput
                     className="flex-1 bg-steel-gray text-white p-2 text-lg font-primary-semibold rounded-lg mr-2"
-                    placeholder="Message"
+                    placeholder="Encrypted message..."
                     value={message}
                     placeholderTextColor="#474f54"
                     onChangeText={(text) => setMessage(text)}
                     onFocus={() => scrollToBottom()}
                 />
-                {message.trim() !== '' && (
-                    <Button
-                        icon={<AntDesign name="arrowup" size={22} />}
-                        textColor={'black'}
-                        bgColor={'primary'}
-                        size={'medium'}
-                        width={'xmin'}
-                        weight={'bold'}
-                        onPress={handleSendMessage}
-                    />
-                )}
+                {message.trim() !== '' ? (
+                    <View className="w-2/12">
+                        <Button
+                            icon={<AntDesign name="arrowup" size={22} />}
+                            textColor={'black'}
+                            bgColor={'primary'}
+                            size={'large'}
+                            width={'full'}
+                            weight={'bold'}
+                            onPress={handleSendMessage}
+                        />
+                    </View>
+                ) :
+                    <View className="w-2/12">
+                        <Button
+                            icon={<AntDesign name="arrowup" size={22} />}
+                            textColor={'black'}
+                            bgColor={'primary'}
+                            size={'large'}
+                            width={'full'}
+                            weight={'bold'}
+                            onPress={handleSendMessage}
+                        />
+                    </View>
+                }
             </View>
         </View>
     );
