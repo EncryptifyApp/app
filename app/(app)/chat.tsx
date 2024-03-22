@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import Button from '../../components/Button';
-import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
+import { AntDesign, Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -161,10 +161,10 @@ export default function ChatScreen() {
                     onChangeText={(text) => setMessage(text)}
                     onFocus={() => scrollToBottom()}
                 />
+                <View className="w-2/12">
                 {message.trim() !== '' ? (
-                    <View className="w-2/12">
                         <Button
-                            icon={<AntDesign name="arrowup" size={22} />}
+                            icon={<Ionicons name="send" size={22} />}
                             textColor={'black'}
                             bgColor={'primary'}
                             size={'large'}
@@ -172,11 +172,9 @@ export default function ChatScreen() {
                             weight={'bold'}
                             onPress={handleSendMessage}
                         />
-                    </View>
                 ) :
-                    <View className="w-2/12">
                         <Button
-                            icon={<AntDesign name="arrowup" size={22} />}
+                            icon={<AntDesign name="plus" size={22} />}
                             textColor={'black'}
                             bgColor={'primary'}
                             size={'large'}
@@ -184,8 +182,8 @@ export default function ChatScreen() {
                             weight={'bold'}
                             onPress={handleSendMessage}
                         />
-                    </View>
                 }
+                </View>
             </View>
         </View>
     );
