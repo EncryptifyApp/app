@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import Button from '../../components/Button';
-import { AntDesign, Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
+import { AntDesign, Feather, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -26,6 +26,7 @@ export default function ChatScreen() {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [toUser, setToUser] = useState<User | undefined>();
+    const [sendingAnAttachment, setSendingAnAttachment] = useState<boolean>(false);
 
 
     useEffect(() => {
@@ -101,15 +102,10 @@ export default function ChatScreen() {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <Button
-                    textColor={'black'}
-                    bgColor={'primary'}
-                    size={'small'}
-                    width={'xmin'}
-                    weight={'bold'}
-                    onPress={() => { }}
-                    icon={<FontAwesome name="ellipsis-v" size={18} />}
-                />
+                {/* three dots icon */}
+                <TouchableOpacity>
+                                <MaterialCommunityIcons name="dots-vertical" size={28} color="gray" />
+                            </TouchableOpacity>
             </View>
             {/* Messages */}
             <View className="flex-1">
@@ -119,6 +115,7 @@ export default function ChatScreen() {
                         className="flex-1">
                         <DateSplitter date={moment(chat?.updatedAt).format('LL')} />
                         {messages.length != 0 ? messages.map((msg: Message, index: number) => (
+                            //TODO: make this a component
                             <View key={index}>
                                 {index > 0 && moment(messages[index - 1].createdAt).format('LL') !== moment(msg.createdAt).format('LL') && (
                                     <DateSplitter date={moment(msg.createdAt).format('LL')} />
@@ -154,15 +151,18 @@ export default function ChatScreen() {
             {/* Message Input */}
             <View className="flex flex-row items-center my-2 mx-5">
                 <TextInput
-                    className="flex-1 bg-steel-gray text-white p-2 text-lg font-primary-semibold rounded-lg mr-2"
+                    className="flex-1 bg-steel-gray text-white px-2 py-1.5 text-lg font-primary-semibold rounded-lg mr-2"
                     placeholder="Encrypted message..."
                     value={message}
                     placeholderTextColor="#474f54"
                     onChangeText={(text) => setMessage(text)}
-                    onFocus={() => scrollToBottom()}
+                    onFocus={() => {
+                        scrollToBottom();
+                        setSendingAnAttachment(false);
+                    }}
                 />
                 <View className="w-2/12">
-                {message.trim() !== '' ? (
+                    {message.trim() !== '' ? (
                         <Button
                             icon={<Ionicons name="send" size={22} />}
                             textColor={'black'}
@@ -172,7 +172,7 @@ export default function ChatScreen() {
                             weight={'bold'}
                             onPress={handleSendMessage}
                         />
-                ) :
+                    ) :
                         <Button
                             icon={<AntDesign name="plus" size={22} />}
                             textColor={'black'}
@@ -180,11 +180,27 @@ export default function ChatScreen() {
                             size={'large'}
                             width={'full'}
                             weight={'bold'}
-                            onPress={handleSendMessage}
+                            onPress={() => setSendingAnAttachment(!sendingAnAttachment)}
                         />
-                }
+                    }
                 </View>
             </View>
+            {
+            sendingAnAttachment && <View className="flex flex-row justify-between px-5 mb-5">
+            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                <Image source={require('../../assets/icons/image-icon.png')} className="w-20 h-20" />
+                <Text className="text-white text-sm font-primary-semibold">Gallery</Text>
+            </TouchableOpacity>
+            {/* <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                <Image source={require('../../assets/icons/mic-icon.png')} className="w-20 h-20" />
+                <Text className="text-white text-sm font-primary-semibold">Audio</Text>
+            </TouchableOpacity>
+            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                <Image source={require('../../assets/icons/file-icon.png')} className="w-20 h-20" />
+                <Text className="text-white text-sm font-primary-semibold">File</Text>
+            </TouchableOpacity> */}
+        </View>   
+            }
         </View>
     );
 }

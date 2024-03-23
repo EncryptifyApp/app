@@ -11,6 +11,7 @@ export const decryptChats = async (chats: Chat[], user: User) => {
         console.error("NO PRIVATE KEY");
         return [];
     }
+    if(chats.length == 0) return [];
 
     const decryptedChats = chats.map((chat) => {
         const toUser = chat.members?.find((member) => member.id !== user?.id);

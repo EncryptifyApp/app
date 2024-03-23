@@ -10,7 +10,7 @@ import Button from '../../components/Button';
 import { useChat } from '../../context/useChat';
 import Note from '../../components/Note';
 import { useRouter } from 'expo-router';
-
+import { Image } from 'expo-image';
 
 export default function Index() {
     const router = useRouter();
@@ -28,7 +28,7 @@ export default function Index() {
 
         // Add the new message id to the set of processed messages
         setProcessedMessages(prevMessages => new Set(prevMessages).add(res.data!.newMessage.id));
-        
+
         // Execute updateChats only for new messages
         setChatIdToUpdated(res.data.newMessage.chat?.id!);
         updateChats(res.data.newMessage);
@@ -39,11 +39,13 @@ export default function Index() {
         Alert.alert('Signing out', 'Do you want to sign out?', [
             {
                 text: 'Cancel',
-                onPress: () => {},
+                onPress: () => { },
                 style: 'cancel',
             },
             { text: 'Yes', onPress: () => signOut() },
         ]);
+
+
 
     if (!user) return;
     return (
@@ -67,8 +69,12 @@ export default function Index() {
                         </View>
 
                         {/* sign out button */}
-                        <TouchableOpacity onPress={SignOut}>
+                        {/* <TouchableOpacity onPress={SignOut}>
                             <Text className='font-primary-bold text-red-500 uppercase'>Sign Out</Text>
+                        </TouchableOpacity> */}
+                        {/* three dots icon */}
+                        <TouchableOpacity>
+                            <MaterialCommunityIcons name="dots-vertical" size={28} color="gray" />
                         </TouchableOpacity>
                         {/* <Image source={user?.profileUrl ? user.profileUrl : require("../../assets/logo.png")} className='w-8 h-8 rounded-2xl' /> */}
                     </View>
@@ -135,7 +141,7 @@ export default function Index() {
                                     className='mt-5 bg-midnight-black h-screen'>
                                     {
                                         chats.map((chat) => (
-                                            <Chat key={chat.id} chat={chat} chatIdToUpdated={chatIdToUpdated}/>
+                                            <Chat key={chat.id} chat={chat} chatIdToUpdated={chatIdToUpdated} />
                                         ))
                                     }
                                 </ScrollView>
@@ -144,16 +150,19 @@ export default function Index() {
                     {/* Notes */}
                     {
                         tabSelected === 'notes' && (
-                            <View className="grid gap-2 grid-cols-2 mt-5 mx-3 h-screen">
-                                {[1, 2, 3, 4].map((index) => (
-                                    // <Note key={index} />
-                                    <View key={index}>
-                                        <Note />
-                                    </View>
+                            // <View className="grid gap-2 grid-cols-2 mt-5 mx-3 h-screen">
+                            //     {[1, 2, 3, 4].map((index) => (
+                            //         // <Note key={index} />
+                            //         <View key={index}>
+                            //             <Note />
+                            //         </View>
 
-))}
+                            //     ))}
+                            // </View>
+                            <View className='flex items-center pt-32 bg-midnight-black space-y-5'>
+                                <Text className='text-2xl font-primary-bold text-white text-center'>No notes</Text>
+                                <Image source={require('../../assets/icons/notes-icon.png')} className='w-44 h-44' />
                             </View>
-
                         )
                     }
 

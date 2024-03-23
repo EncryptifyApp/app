@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, SafeAreaView, StatusBar, Alert, Modal } from 'react-native'
+import { View, Text, SafeAreaView, StatusBar, Alert } from 'react-native'
 import QRcode from 'react-native-qrcode-svg';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';

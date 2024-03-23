@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStorageState } from '../utils/useStorageState';
 import { User, useAuthenticatedUserQuery } from '../generated/graphql';
+import ChatService from '../services/ChatService';
 
 
 const AuthContext = React.createContext<{
@@ -42,6 +43,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
     }
     else if (fetching == false && !data?.authenticatedUser) {
       setUser(null);
+      setSession(null);
     } 
 
   }, [data, fetching])
@@ -55,6 +57,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
           reexecuteQuery();
         },
         signOut: () => {
+          ChatService.clearChats();
           setSession(null);
         },
         user,

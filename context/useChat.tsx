@@ -9,9 +9,6 @@ import { decryptMessage } from '../utils/decryptMessage';
 import { decryptChat } from '../utils/decryptChat';
 
 
-// TODO: sync the messages between the server and client
-// and only decrypt the new messages from the server that are not already decrypted locally
-
 const ChatContext = createContext<{
     chats: Chat[] | null,
     updateChats: (message: Message) => void,
@@ -55,18 +52,22 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const fetchData = async () => {
+            
             const { data } = res;
             if (data) {
                 const chat = data.chat!;
+                if(chats.find((c) => c.id === chat.id)) {
+                    return;
+                }
                 const decryptedChat = await decryptChat(chat, user!);
-                setChats([...chats, decryptedChat!]);
+                setChats(sortChats([...chats, decryptedChat!]));
                 await ChatService.addChatToStorage(chat);
             }
         };
-    
+
         fetchData();
     }, [res]);
-    
+
 
 
     useEffect(() => {
@@ -91,20 +92,32 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             // Fetch chats from local storage
             const localChats = await ChatService.getLocalChats();
-            console.log("LOCAL CHATS", localChats);
+            if (localChats.length === 0) {
+                // If no local chats found, stop syncing and set chats to an empty array
+                setSyncing(false);
+                setChats([]);
+                return;
+            }
+    
             // Decrypt local chats
             const decryptedChats = await decryptChats(localChats, user!);
             // Update state with sorted decrypted local messages
             setChats(sortChats(decryptedChats!));
-
-            setSyncing(false);
+            
+            // Check if the user is connected to the internet
             if (isConnected) {
+                // If connected, fetch data from the server
                 await fetchDataFromServer();
+            } else {
+                // If not connected, stop syncing
+                setSyncing(false);
             }
         } catch (error) {
             console.error('Error fetching messages:', error);
+            // Handle errors gracefully
         }
     };
+    
 
     const fetchDataFromServer = async () => {
         try {
@@ -129,39 +142,30 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const updateChats = async (newMessage: Message) => {
         const updatedChats = [...chats!];
         const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
-
-        console.log("CHAT INDEX", chatIndex);
+        let chat = updatedChats[chatIndex];
+        let toUser;
+        console.log('DEBUG: chatIndex', chatIndex);
         if (chatIndex !== -1) {
-            // Update existing chat with the new message
-            console.log("UPDATING EXISITNIG CHAT")
-            const chat = updatedChats[chatIndex];
-            const toUser = chat.members?.find((member) => member.id !== user?.id);
+            toUser = chat.members?.find((member) => member.id !== user?.id)
             const decryptedMessage = await decryptMessage(newMessage, toUser!);
             const existingChat = updatedChats[chatIndex];
             existingChat.messages = [...existingChat.messages as Message[], decryptedMessage as Message];
-            // Move the chat to the beginning of the array
             updatedChats.splice(chatIndex, 1);
             updatedChats.unshift(existingChat);
         } else {
-            // Add new chat with the new message
-            console.log("ADDING NEW CHAT");
             setChatId(newMessage.chat!.id);
         }
-    
-        // Update state with the updated chats
+
         setChats(updatedChats);
-        // Add the new message to local storage
         await ChatService.addMessageToChatStorage(newMessage);
     };
-    
+
 
 
     const addNewChat = async (newChat: Chat) => {
         const updatedChats = [...chats!];
-        console.log("ADDING NEW CHAT");
-        console.log(newChat)
         updatedChats.unshift(newChat);
-        setChats(updatedChats);
+        setChats(sortChats(updatedChats));
         await ChatService.addChatToStorage(newChat);
     }
 
