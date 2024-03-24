@@ -1,11 +1,10 @@
-import { View, TextInput, Text, Image, TouchableOpacity } from 'react-native';
+import { View, TextInput, Text, Image, TouchableOpacity, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useSession } from '../context/useSession';
 import Button from '../components/Button';
 import React, { useEffect, useState } from 'react';
 import { useAuthenticateMutation, useFindAccountQuery } from '../generated/graphql';
-import { toast } from "@backpackapp-io/react-native-toast"
-import { NotificationStyle, PRIVATE_KEY } from '../constants';
+import { PRIVATE_KEY } from '../constants';
 import { decryptPrivateKey, encryptPrivateKey, generateKeyPair } from '../utils/crypto';
 import { encode } from '@stablelib/base64';
 import { Feather } from '@expo/vector-icons';
@@ -19,13 +18,14 @@ type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE
 export default function Auth() {
   const router = useRouter();
   const { authenticateUser } = useSession() || {
-    authenticateUser: async (sessionToken: string) => {}}
+    authenticateUser: async (sessionToken: string) => { }
+  }
   const [step, setStep] = useState<AuthStep>('INPUT_ACCOUNT_NUMBER');
   const [loading, setLoading] = useState<boolean>(false);
 
   //account number
   const [accountNumber, setAccountNumber] = useState<string>('');
-  const [result, reexecuteQuery] = useFindAccountQuery({ variables: { accountNumber: accountNumber }, pause: accountNumber === ''});
+  const [result, reexecuteQuery] = useFindAccountQuery({ variables: { accountNumber: accountNumber }, pause: accountNumber === '' });
 
   //passphrase
   const [passphrase, setPassphrase] = useState<string>('');
@@ -39,11 +39,17 @@ export default function Auth() {
 
   const [, authenticate] = useAuthenticateMutation();
 
-  
+
 
   const FindAccount = async () => {
     if (accountNumber === '' || accountNumber.length != 12) {
-      toast.error('Please enter a valid account number', { styles: NotificationStyle })
+      Alert.alert('Not a valid number', 'Enter a valid number', [
+        {
+          text: 'Close',
+          onPress: () => { },
+          style: 'cancel',
+        },
+      ]);
       return;
     }
     try {
@@ -52,7 +58,13 @@ export default function Auth() {
       const { data } = result;
 
       if (data?.findAccount.error) {
-        toast.error(data?.findAccount.error.message, { styles: NotificationStyle });
+        Alert.alert('Error', data.findAccount.error.message, [
+          {
+            text: 'Close',
+            onPress: () => { },
+            style: 'cancel',
+          },
+        ]);
       }
       if (data?.findAccount.user) {
         if (data.findAccount.user.encryptedPrivateKey === null) {
@@ -67,7 +79,13 @@ export default function Auth() {
       }
     } catch (error) {
       console.error(error);
-      toast.error('Error: try again later', { styles: NotificationStyle });
+      Alert.alert('Error', 'An error occured, try again later', [
+        {
+          text: 'Close',
+          onPress: () => { },
+          style: 'cancel',
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -95,17 +113,29 @@ export default function Auth() {
       setStep('INPUT_USERNAME');
     }
     catch (error) {
-      toast.error('Error: try again later', { styles: NotificationStyle });
+      Alert.alert('Error', 'An error occured, try again later', [
+        {
+          text: 'Close',
+          onPress: () => { },
+          style: 'cancel',
+        },
+      ]);
     }
   }
 
-  const DecryptPrivateKeys = async () => {   
+  const DecryptPrivateKeys = async () => {
     try {
       setLoading(true);
       //decrypt the private key with the passphrase
       const decryptedPrivateKey = decryptPrivateKey(encryptedPrivateKey, passphrase);
-      if(decryptedPrivateKey === null || decryptedPrivateKey === ""){
-        toast.error('Error: Invalid passphrase', { styles: NotificationStyle });
+      if (decryptedPrivateKey === null || decryptedPrivateKey === "") {
+        Alert.alert('Error', 'Invalid passphrase', [
+          {
+            text: 'Close',
+            onPress: () => { },
+            style: 'cancel',
+          },
+        ]);
         return
       } else {
         setStorageItemAsync(PRIVATE_KEY, decryptedPrivateKey.toString());
@@ -113,7 +143,13 @@ export default function Auth() {
       }
     }
     catch (error) {
-      toast.error('Error: try again later', { styles: NotificationStyle });
+      Alert.alert('Error', 'An error occured, try again later', [
+        {
+          text: 'Close',
+          onPress: () => { },
+          style: 'cancel',
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -133,7 +169,13 @@ export default function Auth() {
         encryptedPrivateKey: encryptedPrivateKey
       });
       if (data?.authenticate.error) {
-        toast.error(data?.authenticate.error.message, { styles: NotificationStyle });
+        Alert.alert('Error', data.authenticate.error.message, [
+          {
+            text: 'Close',
+            onPress: () => { },
+            style: 'cancel',
+          },
+        ]);
       }
       if (data?.authenticate.sessionToken) {
         authenticateUser(data.authenticate.sessionToken);
@@ -141,7 +183,14 @@ export default function Auth() {
       }
     }
     catch (error) {
-      toast.error('Error: try again later', { styles: NotificationStyle });
+      console.error(error);
+      Alert.alert('Error', 'An error occured, try again later', [
+        {
+          text: 'Close',
+          onPress: () => { },
+          style: 'cancel',
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -166,7 +215,7 @@ export default function Auth() {
               keyboardType='numeric'
               placeholderTextColor="#FFF"
               className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
-              
+
               onChangeText={(text) => setAccountNumber(text)} />
           </View><Button
             text="Enter"
@@ -177,7 +226,7 @@ export default function Auth() {
             size="large"
             weight="semibold"
             disabled={accountNumber.length !== 12}
-            onPress={FindAccount}/>
+            onPress={FindAccount} />
           <Text className="text-white text-base font-primary-medium text-center mt-8">If you do not have an account number, you can acquire one through our official website.</Text>
         </>
 
@@ -329,7 +378,7 @@ export default function Auth() {
                 <View className="flex flex-row justify-center space-y-5">
                   <TextInput
                     placeholder="Username"
-                  value={username}
+                    value={username}
                     placeholderTextColor="#FFF"
                     className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
                     autoFocus={true}

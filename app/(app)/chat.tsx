@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import Button from '../../components/Button';
-import { AntDesign, Feather, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -12,12 +12,14 @@ import { decryptMessage } from '../../utils/decryptMessage';
 import DateSplitter from '../../components/DateSplitter';
 import { encryptMessage } from '../../utils/encryptMessage';
 import { useChat } from '../../context/useChat';
+import Widget from '../../components/Widget';
 
 
 export default function ChatScreen() {
     const scrollViewRef = useRef(null);
     const { user } = useSession() as { signOut: () => void; user: User | null };
     const [chat, setChat] = useState<Chat>();
+    const [tabSelected, setTabSelected] = useState<"chat" | "notes">('chat');
     const data = useLocalSearchParams();
     const chatId = data["chatId"] as string
 
@@ -102,105 +104,135 @@ export default function ChatScreen() {
                         </TouchableOpacity>
                     </View>
                 </View>
-                {/* three dots icon */}
-                <TouchableOpacity>
-                                <MaterialCommunityIcons name="dots-vertical" size={28} color="gray" />
-                            </TouchableOpacity>
+                <View className='flex flex-row space-x-1 items-center'>
+                    <View>
+                        <Widget text='Chats' onClick={() => setTabSelected("chat")} active={tabSelected == "chat"} />
+                    </View>
+                    <View>
+                        <Widget text='Notes' onClick={() => setTabSelected("notes")} active={tabSelected == "notes"} />
+                    </View>
+                    <TouchableOpacity>
+                        <MaterialCommunityIcons name="dots-vertical" size={28} color="gray" />
+                    </TouchableOpacity>
+                </View>
             </View>
+            {/* Notes */}
+            {tabSelected === 'notes' && (
+                <View className="flex flex-1">
+                    <TextInput
+                        className='px-4 py-2 text-white font-primary-regular text-lg'
+                        multiline
+                        placeholder="
+                        Notes you type are only visible to you, and can always be accessed through your messages with this client.
+                        
+                        Notes are saved automatically as you type."
+                        placeholderTextColor={'#474f54'}
+                    />
+                </View>
+            )}
+
+
             {/* Messages */}
-            <View className="flex-1">
-                <View className="flex-1 p-4">
-                    <ScrollView ref={scrollViewRef}
-                        showsVerticalScrollIndicator={false}
-                        className="flex-1">
-                        <DateSplitter date={moment(chat?.updatedAt).format('LL')} />
-                        {messages.length != 0 ? messages.map((msg: Message, index: number) => (
-                            //TODO: make this a component
-                            <View key={index}>
-                                {index > 0 && moment(messages[index - 1].createdAt).format('LL') !== moment(msg.createdAt).format('LL') && (
-                                    <DateSplitter date={moment(msg.createdAt).format('LL')} />
-                                )}
-                                <View
-                                    className={`${msg.sender?.id === user?.id ? 'justify-end items-end' : 'justify-start items-start'} mb-2`}>
-                                    <View
-                                        className={`${msg.sender?.id === user?.id ? 'bg-primary' : 'bg-steel-gray'} rounded-md p-2 max-w-xs`}>
-                                        <Text className={`${msg.sender?.id === user?.id ? 'text-black' : 'text-white'} font-primary-semibold text-base`}>
-                                            {msg.content}
-                                        </Text>
-                                        <View className="flex flex-row justify-end items-center space-x-1">
-                                            <Text className={`${msg.sender?.id === user?.id ? 'text-black' : 'text-white'} font-primary-regular text-xs`}>
-                                                {moment(msg.createdAt).format('HH:mm')}
-                                            </Text>
-                                            {msg.sender?.id === user?.id ? (
-                                                <Feather name="check" size={12} color={'black'} />
-                                            ) : (
-                                                <Feather name="check" size={12} color={'white'} />
-                                            )}
+            {tabSelected == "chat" &&
+                <>
+                    <View className="flex-1">
+                        <View className="flex-1 px-4">
+                            <ScrollView ref={scrollViewRef}
+                                showsVerticalScrollIndicator={false}
+                                className="flex-1">
+                                <DateSplitter date={moment(chat?.updatedAt).format('LL')} />
+                                {messages.length != 0 ? messages.map((msg: Message, index: number) => (
+                                    //TODO: make this a component
+                                    <View key={index}>
+                                        {index > 0 && moment(messages[index - 1].createdAt).format('LL') !== moment(msg.createdAt).format('LL') && (
+                                            <DateSplitter date={moment(msg.createdAt).format('LL')} />
+                                        )}
+                                        <View
+                                            className={`${msg.sender?.id === user?.id ? 'justify-end items-end' : 'justify-start items-start'} mb-2`}>
+                                            <View
+                                                className={`${msg.sender?.id === user?.id ? 'bg-primary' : 'bg-steel-gray'} rounded-md p-2 max-w-xs`}>
+                                                <Text className={`${msg.sender?.id === user?.id ? 'text-black' : 'text-white'} font-primary-semibold text-base`}>
+                                                    {msg.content}
+                                                </Text>
+                                                <View className="flex flex-row justify-end items-center space-x-1">
+                                                    <Text className={`${msg.sender?.id === user?.id ? 'text-black' : 'text-white'} font-primary-regular text-xs`}>
+                                                        {moment(msg.createdAt).format('HH:mm')}
+                                                    </Text>
+                                                    {msg.sender?.id === user?.id ? (
+                                                        <Feather name="check" size={12} color={'black'} />
+                                                    ) : (
+                                                        <Feather name="check" size={12} color={'white'} />
+                                                    )}
+                                                </View>
+                                            </View>
                                         </View>
                                     </View>
-                                </View>
-                            </View>
-                        )) :
-                            <View className="flex flex-col justify-center items-center">
-                                <Text className="font-primary-semibold text-white text-lg">No messages yet</Text>
-                            </View>
-                        }
-                    </ScrollView>
-                </View>
-            </View>
-            {/* Message Input */}
-            <View className="flex flex-row items-center my-2 mx-5">
-                <TextInput
-                    className="flex-1 bg-steel-gray text-white px-2 py-1.5 text-lg font-primary-semibold rounded-lg mr-2"
-                    placeholder="Encrypted message..."
-                    value={message}
-                    placeholderTextColor="#474f54"
-                    onChangeText={(text) => setMessage(text)}
-                    onFocus={() => {
-                        scrollToBottom();
-                        setSendingAnAttachment(false);
-                    }}
-                />
-                <View className="w-2/12">
-                    {message.trim() !== '' ? (
-                        <Button
-                            icon={<Ionicons name="send" size={22} />}
-                            textColor={'black'}
-                            bgColor={'primary'}
-                            size={'large'}
-                            width={'full'}
-                            weight={'bold'}
-                            onPress={handleSendMessage}
+                                )) :
+                                    <View className="flex flex-col justify-center items-center">
+                                        <Text className="font-primary-semibold text-white text-lg">No messages yet</Text>
+                                    </View>
+                                }
+                            </ScrollView>
+                        </View>
+                    </View>
+
+                    {/* Message Input */}
+                    <View className="flex flex-row items-center my-2 mx-3">
+                        <TextInput
+                            className="flex-1 bg-steel-gray text-white px-2 py-1.5 text-lg font-primary-semibold rounded-lg mr-2"
+                            placeholder="Encrypted message..."
+                            value={message}
+                            placeholderTextColor="#474f54"
+                            onChangeText={(text) => setMessage(text)}
+                            onFocus={() => {
+                                scrollToBottom();
+                                setSendingAnAttachment(false);
+                            }}
                         />
-                    ) :
-                        <Button
-                            icon={<AntDesign name="plus" size={22} />}
-                            textColor={'black'}
-                            bgColor={'primary'}
-                            size={'large'}
-                            width={'full'}
-                            weight={'bold'}
-                            onPress={() => setSendingAnAttachment(!sendingAnAttachment)}
-                        />
+                        <View className="w-2/12">
+                            {message.trim() !== '' ? (
+                                <Button
+                                    icon={<Ionicons name="send" size={22} />}
+                                    textColor={'black'}
+                                    bgColor={'primary'}
+                                    size={'large'}
+                                    width={'full'}
+                                    weight={'bold'}
+                                    onPress={handleSendMessage}
+                                />
+                            ) :
+                                <Button
+                                    icon={<AntDesign name="plus" size={22} />}
+                                    textColor={'black'}
+                                    bgColor={'primary'}
+                                    size={'large'}
+                                    width={'full'}
+                                    weight={'bold'}
+                                    onPress={() => setSendingAnAttachment(!sendingAnAttachment)}
+                                />
+                            }
+                        </View>
+                    </View>
+                    {
+                        sendingAnAttachment && <View className="flex flex-row justify-evenly mx-3 mb-5">
+                            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                                <Image source={require('../../assets/icons/image-icon.png')} className="w-20 h-20" />
+                                <Text className="text-white text-sm font-primary-semibold">Gallery</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                                <Image source={require('../../assets/icons/mic-icon.png')} className="w-20 h-20" />
+                                <Text className="text-white text-sm font-primary-semibold">Audio</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                                <Image source={require('../../assets/icons/file-icon.png')} className="w-20 h-20" />
+                                <Text className="text-white text-sm font-primary-semibold">File</Text>
+                            </TouchableOpacity>
+                        </View>
                     }
-                </View>
-            </View>
-            {
-            sendingAnAttachment && <View className="flex flex-row justify-between px-5 mb-5">
-            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                <Image source={require('../../assets/icons/image-icon.png')} className="w-20 h-20" />
-                <Text className="text-white text-sm font-primary-semibold">Gallery</Text>
-            </TouchableOpacity>
-            {/* <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                <Image source={require('../../assets/icons/mic-icon.png')} className="w-20 h-20" />
-                <Text className="text-white text-sm font-primary-semibold">Audio</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                <Image source={require('../../assets/icons/file-icon.png')} className="w-20 h-20" />
-                <Text className="text-white text-sm font-primary-semibold">File</Text>
-            </TouchableOpacity> */}
-        </View>   
+                </>
             }
+
+
         </View>
     );
 }

@@ -1,21 +1,17 @@
-import { Alert, SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { useSession } from '../../context/useSession'
 import { Message, User, useNewMessageSubscription } from '../../generated/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
-import Widget from '../../components/Widget';
 import Loading from '../../components/Loading';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { useChat } from '../../context/useChat';
-import Note from '../../components/Note';
 import { useRouter } from 'expo-router';
-import { Image } from 'expo-image';
 
 export default function Index() {
     const router = useRouter();
-    const { user, signOut } = useSession() as { signOut: () => void, user: User | null };
-    const [tabSelected, setTabSelected] = useState<"chats" | "notes">('chats');
+    const { user } = useSession() as { signOut: () => void, user: User | null };
     const { syncing, chats, updateChats } = useChat() as { syncing: boolean, chats: any[], updateChats: (message: Message) => void };
     const [res] = useNewMessageSubscription();
 
@@ -34,16 +30,6 @@ export default function Index() {
         updateChats(res.data.newMessage);
     }, [res, processedMessages]);
 
-    //Sign out
-    const SignOut = () =>
-        Alert.alert('Signing out', 'Do you want to sign out?', [
-            {
-                text: 'Cancel',
-                onPress: () => { },
-                style: 'cancel',
-            },
-            { text: 'Yes', onPress: () => signOut() },
-        ]);
 
 
 
@@ -104,7 +90,7 @@ export default function Index() {
                     <View className="flex-row  justify-between py-3 space-x-2 items-center px-4">
                         <View>
                             <Text className="font-primary-semibold text-white text-xl">
-                                {tabSelected === 'chats' ? "Recent chats" : "Private Notes"}
+                                Recent chats
                             </Text>
                         </View>
                         <Button
@@ -119,51 +105,23 @@ export default function Index() {
 
                         {/* <AntDesign name="search1" size={24} color="gray" /> */}
                     </View>
-                    <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} className='flex-row space-x-2 mx-4'>
-                        <View>
-                            <Widget text='Chats' onClick={() => setTabSelected("chats")} active={tabSelected == "chats"} />
-                        </View>
-                        <View>
-                            <Widget text='Notes' onClick={() => setTabSelected("notes")} active={tabSelected == "notes"} />
-                        </View>
 
-                    </ScrollView>
                     {/* Chats */}
                     {
-                        tabSelected === 'chats' && (
-                            chats.length === 0 ? (
-                                <View className='flex items-center pt-32 bg-midnight-black space-y-5'>
-                                    <Text className='text-2xl font-primary-semibold text-white text-center'>You have no{"\n"} chats yet</Text>
-                                    <Ionicons name="chatbox-ellipses-outline" size={38} color="white" />
-                                </View>
-                            ) :
-                                <ScrollView
-                                    className='mt-5 bg-midnight-black h-screen'>
-                                    {
-                                        chats.map((chat) => (
-                                            <Chat key={chat.id} chat={chat} chatIdToUpdated={chatIdToUpdated} />
-                                        ))
-                                    }
-                                </ScrollView>
-                        )
-                    }
-                    {/* Notes */}
-                    {
-                        tabSelected === 'notes' && (
-                            // <View className="grid gap-2 grid-cols-2 mt-5 mx-3 h-screen">
-                            //     {[1, 2, 3, 4].map((index) => (
-                            //         // <Note key={index} />
-                            //         <View key={index}>
-                            //             <Note />
-                            //         </View>
-
-                            //     ))}
-                            // </View>
+                        chats.length === 0 ? (
                             <View className='flex items-center pt-32 bg-midnight-black space-y-5'>
-                                <Text className='text-2xl font-primary-bold text-white text-center'>No notes</Text>
-                                <Image source={require('../../assets/icons/notes-icon.png')} className='w-44 h-44' />
+                                <Text className='text-2xl font-primary-semibold text-white text-center'>You have no{"\n"} chats yet</Text>
+                                <Ionicons name="chatbox-ellipses-outline" size={38} color="white" />
                             </View>
-                        )
+                        ) :
+                            <ScrollView
+                                className='mt-5 bg-midnight-black h-screen'>
+                                {
+                                    chats.map((chat) => (
+                                        <Chat key={chat.id} chat={chat} chatIdToUpdated={chatIdToUpdated} />
+                                    ))
+                                }
+                            </ScrollView>
                     }
 
                 </View>

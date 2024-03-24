@@ -41,6 +41,6 @@ export default function AppLayout() {
         return <Redirect href="/auth" />;
     }
 
-    return <Stack screenOptions={{ headerShown: false }} />
+    return <Stack screenOptions={{ headerShown: false, animation:"fade_from_bottom"}} />
 
 }

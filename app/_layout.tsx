@@ -3,7 +3,6 @@ import { Provider, createClient, fetchExchange, cacheExchange, subscriptionExcha
 import { createClient as createWSClient } from 'graphql-ws';
 import { Slot } from 'expo-router';
 import { SessionProvider } from '../context/useSession';
-import { Toasts } from '@backpackapp-io/react-native-toast';
 import { useStorageState } from '../utils/useStorageState';
 import { httpUrl, wsUrl } from '../config';
 import { ChatProvider } from '../context/useChat';
@@ -75,7 +74,6 @@ const Root = () => {
         <Slot />
       </ChatProvider>
       </SessionProvider>
-      <Toasts />
     </Provider>
   );
 };
