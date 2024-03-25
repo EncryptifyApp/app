@@ -1,13 +1,13 @@
-import { SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StatusBar, Text, View } from 'react-native';
 import { useSession } from '../../context/useSession'
 import { Message, User, useNewMessageSubscription } from '../../generated/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
-import Loading from '../../components/Loading';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { useChat } from '../../context/useChat';
 import { useRouter } from 'expo-router';
+import Header from "../../components/Header"
 
 export default function Index() {
     const router = useRouter();
@@ -31,9 +31,8 @@ export default function Index() {
     }, [res, processedMessages]);
 
 
-
-
     if (!user) return;
+
     return (
         <View className="flex-1 bg-midnight-black">
             <SafeAreaView className="flex flex-col bg-steel-gray  justify-start pt-10">
@@ -44,43 +43,7 @@ export default function Index() {
                     showHideTransition={'fade'}
                 />
                 {/* Header */}
-                <View className='bg-steel-gray py-2'>
-                    {/* synicing animation */}
-                    {syncing && <Loading />}
-                    <View className="flex-row  justify-between py-3 space-x-2 items-center px-4">
-                        <View className="flex">
-                            <Text className="font-primary-semibold text-white text-xl">
-                                Pinned Chats
-                            </Text>
-                        </View>
-
-                        {/* sign out button */}
-                        {/* <TouchableOpacity onPress={SignOut}>
-                            <Text className='font-primary-bold text-red-500 uppercase'>Sign Out</Text>
-                        </TouchableOpacity> */}
-                        {/* three dots icon */}
-                        <TouchableOpacity>
-                            <MaterialCommunityIcons name="dots-vertical" size={28} color="gray" />
-                        </TouchableOpacity>
-                        {/* <Image source={user?.profileUrl ? user.profileUrl : require("../../assets/logo.png")} className='w-8 h-8 rounded-2xl' /> */}
-                    </View>
-                    {/* Pinned Chats */}
-                    <View className='flex flex-row flex-wrap'>
-                        {/* <View className='w-1/2 p-2'>
-                            <PinnedChat />
-                        </View>
-                        <View className='w-1/2 p-2'>
-                            <PinnedChat />
-                        </View> */}
-                        {/* <View className='w-1/2 p-2'>
-                            <PinnedChat />
-                        </View>
-                        <View className='w-1/2 p-2'>
-                            <PinnedChat />
-                        </View> */}
-                    </View>
-                </View>
-
+                <Header syncing={syncing} title="Chats" />
 
                 {/* Chats */}
                 <View className='bg-midnight-black rounded-t-2xl'>
@@ -102,10 +65,7 @@ export default function Index() {
                                 router.push('/QR');
                             }}
                         />
-
-                        {/* <AntDesign name="search1" size={24} color="gray" /> */}
                     </View>
-
                     {/* Chats */}
                     {
                         chats.length === 0 ? (
@@ -123,7 +83,6 @@ export default function Index() {
                                 }
                             </ScrollView>
                     }
-
                 </View>
             </SafeAreaView>
         </View>

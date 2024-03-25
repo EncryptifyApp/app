@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, SafeAreaView, StatusBar, Alert } from 'react-native'
 import QRcode from 'react-native-qrcode-svg';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { useSession } from '../../context/useSession';
@@ -9,6 +8,7 @@ import { Chat, User, useGetChatbyUserIdQuery } from '../../generated/graphql';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useRouter } from 'expo-router';
 import { useChat } from '../../context/useChat';
+import Header from '../../components/Header';
 
 
 
@@ -87,20 +87,7 @@ export default function QR() {
                     showHideTransition={'fade'}
                 />
                 {/* Header */}
-                <View className='bg-steel-gray py-2'>
-
-                    <View className="">
-                        <View className="flex flex-row justify-between py-3 items-center pl-4 pr-3">
-                            <Text className="font-primary-semibold text-white text-xl">
-                                QR code
-                            </Text>
-                            {/* three dots icon */}
-                            <TouchableOpacity>
-                                <MaterialCommunityIcons name="dots-vertical" size={28} color="gray" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
+                <Header title="QR code" />
 
 
                 {/* Chats */}

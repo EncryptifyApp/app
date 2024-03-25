@@ -6,7 +6,7 @@ import { SessionProvider } from '../context/useSession';
 import { useStorageState } from '../utils/useStorageState';
 import { httpUrl, wsUrl } from '../config';
 import { ChatProvider } from '../context/useChat';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Root = () => {
   const [[, session]] = useStorageState('session');
@@ -19,20 +19,22 @@ const Root = () => {
       url: wsUrl,
       connectionParams: {
         authorization: session ? `${session}` : null,
-    },
-      on: {connected: () => {
-        console.log('WebSocket connected');
       },
-      error: (err) => {
-        console.error('WebSocket error', err);
-      },},
+      on: {
+        connected: () => {
+          console.log('WebSocket connected');
+        },
+        error: (err) => {
+          console.error('WebSocket error', err);
+        },
+      },
     });
 
     const initWebSocketClient = async () => {
       if (session) {
         wsClient = createWebSocketClient(session);
       }
-    }; 
+    };
 
     initWebSocketClient();
 
@@ -49,30 +51,33 @@ const Root = () => {
     url: httpUrl,
     fetchOptions: () => {
       return session ? { headers: { Authorization: `${session}` } } : {};
-  },
-  exchanges: [
-    cacheExchange,
-    fetchExchange,
-    subscriptionExchange({
-      forwardSubscription(request) {
-        const input = { ...request, query: request.query || '' };
-        return {
-          subscribe(sink) {
-            const unsubscribe = wsClient.subscribe(input, sink);
-            return { unsubscribe };
-          },
-        };
-      },
-    }),
-  ],
+    },
+    exchanges: [
+      cacheExchange,
+      fetchExchange,
+      subscriptionExchange({
+        forwardSubscription(request) {
+          const input = { ...request, query: request.query || '' };
+          return {
+            subscribe(sink) {
+              const unsubscribe = wsClient.subscribe(input, sink);
+              return { unsubscribe };
+            },
+          };
+        },
+      }),
+    ],
   });
+
+
+  const safeAreaInsets = useSafeAreaInsets();
 
   return (
     <Provider value={client}>
       <SessionProvider>
         <ChatProvider>
-        <Slot />
-      </ChatProvider>
+          <Slot />
+        </ChatProvider>
       </SessionProvider>
     </Provider>
   );

@@ -85,8 +85,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         if (user) {
             fetchDataFromLocalStorage();
-        } else {
-            setSyncing(false);
         }
     }, [user]);
 
@@ -146,7 +144,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
         let chat = updatedChats[chatIndex];
         let toUser;
-        console.log('DEBUG: chatIndex', chatIndex);
+        
         if (chatIndex !== -1) {
             toUser = chat.members?.find((member) => member.id !== user?.id)
             const decryptedMessage = await decryptMessage(newMessage, toUser!);
