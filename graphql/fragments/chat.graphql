@@ -9,14 +9,6 @@ fragment chatFragment on Chat {
         publicKey
     }
     messages {
-        id
-        content
-        createdAt
-        sender {
-            id
-            username
-            profileUrl
-            publicKey
-        }
+        ...messageFragment
     }
 }

@@ -1,5 +1,4 @@
-subscription NewMessage {
-    newMessage {
+fragment messageFragment on Message {
         id
         content
         createdAt
@@ -7,8 +6,4 @@ subscription NewMessage {
         sender {
             ...userFragment
         }
-        chat {
-            id
-        }
-    }
 }

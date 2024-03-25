@@ -85,6 +85,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         if (user) {
             fetchDataFromLocalStorage();
+        } else {
+            setSyncing(false);
         }
     }, [user]);
 

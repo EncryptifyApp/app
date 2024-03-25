@@ -1,0 +1,5 @@
+query GetChatbyUserKey($licenseKey: String!) {
+  getChatbyUserKey(licenseKey: $licenseKey) {
+     ...chatFragment
+  }
+}

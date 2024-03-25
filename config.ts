@@ -1,5 +1,5 @@
 //SERVER
-export const SERVER = "192.168.2.19"
+export const SERVER = "192.168.2.13"
 
 //URLS
 export const httpUrl = `http://${SERVER}:4000/graphql`;

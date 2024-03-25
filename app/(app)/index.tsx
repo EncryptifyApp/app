@@ -3,7 +3,7 @@ import { useSession } from '../../context/useSession'
 import { Message, User, useNewMessageSubscription } from '../../generated/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import {  MaterialCommunityIcons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { useChat } from '../../context/useChat';
 import { useRouter } from 'expo-router';
@@ -69,10 +69,10 @@ export default function Index() {
                     {/* Chats */}
                     {
                         chats.length === 0 ? (
-                            <View className='flex items-center pt-32 bg-midnight-black space-y-5'>
-                                <Text className='text-2xl font-primary-semibold text-white text-center'>You have no{"\n"} chats yet</Text>
-                                <Ionicons name="chatbox-ellipses-outline" size={38} color="white" />
-                            </View>
+                            <View className='flex items-center pt-32 bg-midnight-black space-y-4'>
+                                <Text className='text-2xl font-primary-semibold text-white text-center'>No chats</Text>
+                               
+                            </View> 
                         ) :
                             <ScrollView
                                 className='mt-5 bg-midnight-black h-screen'>

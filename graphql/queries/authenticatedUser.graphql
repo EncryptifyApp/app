@@ -1,6 +1,7 @@
 query AuthenticatedUser {
   authenticatedUser {
      ...userFragment
+     licenseKey
      encryptedPrivateKey
   }
 }

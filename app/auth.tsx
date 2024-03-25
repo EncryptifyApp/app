@@ -23,9 +23,9 @@ export default function Auth() {
   const [step, setStep] = useState<AuthStep>('INPUT_ACCOUNT_NUMBER');
   const [loading, setLoading] = useState<boolean>(false);
 
-  //account number
-  const [accountNumber, setAccountNumber] = useState<string>('');
-  const [result, reexecuteQuery] = useFindAccountQuery({ variables: { accountNumber: accountNumber }, pause: accountNumber === '' });
+  //licenseKey
+  const [licenseKey, setLicenseKey] = useState<string>('');
+  const [result, reexecuteQuery] = useFindAccountQuery({ variables: { licenseKey: licenseKey }, pause: licenseKey === '' });
 
   //passphrase
   const [passphrase, setPassphrase] = useState<string>('');
@@ -40,9 +40,29 @@ export default function Auth() {
   const [, authenticate] = useAuthenticateMutation();
 
 
+  const formatLicenseKey = (text:string) => {
+    // Remove any dashes and uppercase the input
+    text = text.replace(/-/g, '').toUpperCase();
+    
+    // Insert dashes at specific positions
+    let formattedKey = '';
+    for (let i = 0; i < text.length; i++) {
+        formattedKey += text[i];
+        if ((i === 4 || i === 9) && i !== text.length - 1) {
+            formattedKey += '-';
+        }
+    }
+    return formattedKey;
+};
 
-  const FindAccount = async () => {
-    if (accountNumber === '' || accountNumber.length != 12) {
+const handleLicenseKeyChange = (text:string) => {
+    const formattedKey = formatLicenseKey(text);
+    setLicenseKey(formattedKey);
+};
+
+
+  const FindLicense = async () => {
+    if (licenseKey === '' || licenseKey.length != 17) {
       Alert.alert('Not a valid number', 'Enter a valid number', [
         {
           text: 'Close',
@@ -164,7 +184,7 @@ export default function Auth() {
       setLoading(true);
       const { data } = await authenticate({
         username: username,
-        accountNumber: accountNumber,
+        licenseKey: licenseKey,
         publicKey: publicKey,
         encryptedPrivateKey: encryptedPrivateKey
       });
@@ -211,12 +231,13 @@ export default function Auth() {
           source={require('../assets/images/logo.png')}
           className="w-24 h-24 mb-5" /><View className="flex flex-row justify-center my-5 text-white">
             <TextInput
-              placeholder="Account number"
-              keyboardType='numeric'
+              placeholder="License key"
               placeholderTextColor="#FFF"
+              autoCapitalize='characters'
               className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
-
-              onChangeText={(text) => setAccountNumber(text)} />
+              value={licenseKey}
+              onChangeText={handleLicenseKeyChange}
+              />
           </View><Button
             text="Enter"
             textColor="black"
@@ -225,9 +246,9 @@ export default function Auth() {
             loading={loading}
             size="large"
             weight="semibold"
-            disabled={accountNumber.length !== 12}
-            onPress={FindAccount} />
-          <Text className="text-white text-base font-primary-medium text-center mt-8">If you do not have an account number, you can acquire one through our official website.</Text>
+            disabled={licenseKey.length !== 17}
+            onPress={FindLicense} />
+          <Text className="text-white text-base font-primary-medium text-center mt-8">If you do not have a license key, you can acquire one through our official website.</Text>
         </>
 
       )}

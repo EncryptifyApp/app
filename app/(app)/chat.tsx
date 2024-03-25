@@ -213,22 +213,22 @@ export default function ChatScreen() {
                             }
                         </View>
                     </View>
-                    {
+                    {/* {
                         sendingAnAttachment && <View className="flex flex-row justify-evenly mx-3 mb-5">
-                            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                                <Image source={require('../../assets/icons/image-icon.png')} className="w-20 h-20" />
-                                <Text className="text-white text-sm font-primary-semibold">Gallery</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                                <Image source={require('../../assets/icons/mic-icon.png')} className="w-20 h-20" />
-                                <Text className="text-white text-sm font-primary-semibold">Audio</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                                <Image source={require('../../assets/icons/file-icon.png')} className="w-20 h-20" />
-                                <Text className="text-white text-sm font-primary-semibold">File</Text>
-                            </TouchableOpacity>
-                        </View>
-                    }
+                        <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                            <ImageIcon width={50} height={50} />
+                            <Text className="text-white text-sm font-primary-semibold">Gallery</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                            <MicIcon width={50} height={50} />
+                            <Text className="text-white text-sm font-primary-semibold">Audio</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
+                            <FileIcon width={50} height={50} />
+                            <Text className="text-white text-sm font-primary-semibold">File</Text>
+                        </TouchableOpacity>
+                    </View>
+                    } */}
                 </>
             }
 
