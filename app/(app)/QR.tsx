@@ -125,10 +125,10 @@ export default function QR() {
             </View>
 
             {/* Tab Content */}
-            <View className='flex items-center mt-10'>
+            <View className='mt-10'>
                 {/* My QR Code */}
                 {tabSelected === 'MYQR' && (
-                    <View>
+                    <View className='flex justify-center items-center mx-auto'>
                         {/* Your QR code */}
                         <View className='py-4 px-16 bg-stormy-gray rounded-lg space-y-4'>
                             {/* QR Code Details */}
@@ -139,14 +139,21 @@ export default function QR() {
                             </View>
                             
                             {/* QR Code Image */}
-                            <View className='rounded-lg p-2 bg-white'>
+                            <View className='flex flex-col justify-center items-center rounded-lg p-2 bg-white'>
                                 <QRcode
                                     value={user?.licenseKey!}
                                     logo={require('../../assets/images/logo.png')}
                                     logoSize={30}
                                     size={120}
                                     logoBackgroundColor='transparent'
+                                    backgroundColor='transparent'
                                 />
+                            </View>
+                            {/* make a splitter with or in the middle */}
+                            <View className='flex flex-row items-center justify-center'>
+                                <View className='bg-steel-gray h-0.5 w-5'></View>
+                                <Text className='text-white mx-2'>or</Text>
+                                <View className='bg-steel-gray h-0.5 w-5'></View>
                             </View>
                             {/* License Key Display */}
                             <View className="flex-row items-center">
