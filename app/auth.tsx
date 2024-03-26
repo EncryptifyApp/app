@@ -40,28 +40,30 @@ export default function Auth() {
   const [, authenticate] = useAuthenticateMutation();
 
 
-  const formatLicenseKey = (text:string) => {
+  const formatLicenseKey = (text: string) => {
     // Remove any dashes and uppercase the input
     text = text.replace(/-/g, '').toUpperCase();
-    
+
     // Insert dashes at specific positions
     let formattedKey = '';
     for (let i = 0; i < text.length; i++) {
-        formattedKey += text[i];
-        if ((i === 4 || i === 9) && i !== text.length - 1) {
-            formattedKey += '-';
-        }
+      formattedKey += text[i];
+      if ((i === 4 || i === 9) && i !== text.length - 1) {
+        formattedKey += '-';
+      }
     }
     return formattedKey;
-};
+  };
 
-const handleLicenseKeyChange = (text:string) => {
+  const handleLicenseKeyChange = (text: string) => {
+    if (text.length > 17) return;
     const formattedKey = formatLicenseKey(text);
     setLicenseKey(formattedKey);
-};
+  };
 
 
   const FindLicense = async () => {
+    
     if (licenseKey === '' || licenseKey.length != 17) {
       Alert.alert('Not a valid number', 'Enter a valid number', [
         {
@@ -76,7 +78,7 @@ const handleLicenseKeyChange = (text:string) => {
       setLoading(true);
       reexecuteQuery();
       const { data } = result;
-
+      
       if (data?.findAccount.error) {
         Alert.alert('Error', data.findAccount.error.message, [
           {
@@ -231,13 +233,13 @@ const handleLicenseKeyChange = (text:string) => {
           source={require('../assets/images/logo.png')}
           className="w-24 h-24 mb-5" /><View className="flex flex-row justify-center my-5 text-white">
             <TextInput
-              placeholder="License key"
-              placeholderTextColor="#FFF"
+              placeholder="XXXXX-XXXXX-XXXXX"
+              placeholderTextColor="gray"
               autoCapitalize='characters'
-              className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
+              className="w-full p-2 text-gray-200 border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
               value={licenseKey}
               onChangeText={handleLicenseKeyChange}
-              />
+            />
           </View><Button
             text="Enter"
             textColor="black"

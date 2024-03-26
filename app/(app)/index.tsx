@@ -3,12 +3,12 @@ import { useSession } from '../../context/useSession'
 import { Message, User, useNewMessageSubscription } from '../../generated/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
-import {  MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { useChat } from '../../context/useChat';
 import { useRouter } from 'expo-router';
 import Header from "../../components/Header"
-
+import { Image } from 'expo-image';
 export default function Index() {
     const router = useRouter();
     const { user } = useSession() as { signOut: () => void, user: User | null };
@@ -71,8 +71,9 @@ export default function Index() {
                         chats.length === 0 ? (
                             <View className='flex items-center pt-32 bg-midnight-black space-y-4'>
                                 <Text className='text-2xl font-primary-semibold text-white text-center'>No chats</Text>
-                               
-                            </View> 
+                                <Image source={require('../../assets/icons/no-data-icon-2.png')} className='h-40 w-40' />
+                                <Text className='text-base font-primary-semibold text-white text-center'>Start a new chat by scanning a QR code {"\n"} or entering a user id</Text>
+                            </View>
                         ) :
                             <ScrollView
                                 className='mt-5 bg-midnight-black h-screen'>
