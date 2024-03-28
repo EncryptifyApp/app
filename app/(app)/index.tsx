@@ -1,9 +1,9 @@
-import { SafeAreaView, ScrollView, StatusBar, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { useSession } from '../../context/useSession'
 import { Message, User, useNewMessageSubscription } from '../../generated/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { useChat } from '../../context/useChat';
 import { useRouter } from 'expo-router';
@@ -56,15 +56,14 @@ export default function Index() {
                                 Recent chats
                             </Text>
                         </View>
-                        <Button
-                            icon={<MaterialCommunityIcons name="qrcode-scan" size={24} color="#00e701" />}
-                            bgColor="steel-gray"
-                            size={'small'}
-                            width={'xmin'}
-                            onPress={() => {
-                                router.push('/QR');
-                            }}
-                        />
+                        <View className="flex-row space-x-4">
+
+                            <TouchableOpacity
+                                onPress={() => router.push({ pathname: "/addContact" })}
+                                className="bg-steel-gray rounded-md p-2">
+                                <MaterialIcons name="person-add" size={20} color="#00e701" />
+                            </TouchableOpacity>
+                        </View>
                     </View>
                     {/* Chats */}
                     {

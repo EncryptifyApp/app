@@ -43,7 +43,6 @@ export function SessionProvider(props: React.PropsWithChildren) {
     }
     else if (fetching == false && !data?.authenticatedUser) {
       setUser(null);
-      setSession(null);
     } 
 
   }, [data, fetching])

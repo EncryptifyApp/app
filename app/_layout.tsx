@@ -6,7 +6,6 @@ import { SessionProvider } from '../context/useSession';
 import { useStorageState } from '../utils/useStorageState';
 import { httpUrl, wsUrl } from '../config';
 import { ChatProvider } from '../context/useChat';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Root = () => {
   const [[, session]] = useStorageState('session');
@@ -68,9 +67,6 @@ const Root = () => {
       }),
     ],
   });
-
-
-  const safeAreaInsets = useSafeAreaInsets();
 
   return (
     <Provider value={client}>

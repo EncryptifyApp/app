@@ -13,6 +13,8 @@ import DateSplitter from '../../components/DateSplitter';
 import { encryptMessage } from '../../utils/encryptMessage';
 import { useChat } from '../../context/useChat';
 import Widget from '../../components/Widget';
+import MessageReceived from '../../components/MessageReceived';
+import MessageSent from '../../components/MessageSent';
 
 
 export default function ChatScreen() {
@@ -142,30 +144,15 @@ export default function ChatScreen() {
                                 className="flex-1">
                                 <DateSplitter date={moment(chat?.updatedAt).format('LL')} />
                                 {messages.length != 0 ? messages.map((msg: Message, index: number) => (
-                                    //TODO: make this a component
                                     <View key={index}>
                                         {index > 0 && moment(messages[index - 1].createdAt).format('LL') !== moment(msg.createdAt).format('LL') && (
                                             <DateSplitter date={moment(msg.createdAt).format('LL')} />
                                         )}
-                                        <View
-                                            className={`${msg.sender?.id === user?.id ? 'justify-end items-end' : 'justify-start items-start'} mb-2`}>
-                                            <View
-                                                className={`${msg.sender?.id === user?.id ? 'bg-primary' : 'bg-steel-gray'} rounded-md p-2 max-w-xs`}>
-                                                <Text className={`${msg.sender?.id === user?.id ? 'text-black' : 'text-white'} font-primary-semibold text-base`}>
-                                                    {msg.content}
-                                                </Text>
-                                                <View className="flex flex-row justify-end items-center space-x-1">
-                                                    <Text className={`${msg.sender?.id === user?.id ? 'text-black' : 'text-white'} font-primary-regular text-xs`}>
-                                                        {moment(msg.createdAt).format('HH:mm')}
-                                                    </Text>
-                                                    {msg.sender?.id === user?.id ? (
-                                                        <Feather name="check" size={12} color={'black'} />
-                                                    ) : (
-                                                        <Feather name="check" size={12} color={'white'} />
-                                                    )}
-                                                </View>
-                                            </View>
-                                        </View>
+                                        {msg.sender?.id === user?.id ? (
+                                            <MessageSent message={msg} />
+                                        ) : (
+                                            <MessageReceived message={msg} />
+                                        )}
                                     </View>
                                 )) :
                                     <View className="flex flex-col justify-center items-center">
@@ -213,22 +200,40 @@ export default function ChatScreen() {
                             }
                         </View>
                     </View>
-                    {/* {
-                        sendingAnAttachment && <View className="flex flex-row justify-evenly mx-3 mb-5">
-                        <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                            <ImageIcon width={50} height={50} />
-                            <Text className="text-white text-sm font-primary-semibold">Gallery</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                            <MicIcon width={50} height={50} />
-                            <Text className="text-white text-sm font-primary-semibold">Audio</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity className='flex flex-col justify-center items-center px-2 py-2 rounded-md bg-steel-gray'>
-                            <FileIcon width={50} height={50} />
-                            <Text className="text-white text-sm font-primary-semibold">File</Text>
-                        </TouchableOpacity>
-                    </View>
-                    } */}
+                    {/* attrachment icons from assets */}
+
+                    {/* {sendingAnAttachment && (
+                        // scrollview of images from the gallery like signal
+                        <View className='flex flex-col justify-center space-y-5'>
+                            <ScrollView showsHorizontalScrollIndicator={false} horizontal className="flex flex-row space-x-5 px-3 py-2">
+                                {
+                                    [1, 2, 3, 4, 5].map((item, index) => (
+                                        <Image key={index} source={require('../../assets/images/test.jpg')} className="w-48 h-48 rounded-xl" />
+                                    ))
+                                }
+                                
+                            </ScrollView>
+                            <View className="flex flex-row justify-between space-x-5 px-3 pb-5">
+                                <TouchableOpacity className='flex flex-col justify-center items-center w-16 py-2 rounded-md bg-steel-gray space-y-2'>
+                                    <Ionicons name="images" size={32} color="#00e701" />
+                                    <Text className="font-primary-semibold text-white text-sm">Image</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity className='flex flex-col justify-center items-center w-16 py-2 rounded-md bg-steel-gray space-y-2'>
+                                    <Ionicons name="document" size={32} color="#00e701" />
+                                    <Text className="font-primary-semibold text-white text-sm">File</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity className='flex flex-col justify-center items-center w-16 py-2 rounded-md bg-steel-gray space-y-2'>
+                                    <Ionicons name="mic-outline" size={32} color="#00e701" />
+                                    <Text className="font-primary-semibold text-white text-sm">Audio</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity className='flex flex-col justify-center items-center w-16 py-2 rounded-md bg-steel-gray space-y-2'>
+                                    <Ionicons name="navigate-circle-outline" size={32} color="#00e701" />
+                                    <Text className="font-primary-semibold text-white text-sm">Location</Text>
+                                </TouchableOpacity>
+                            </View></View>
+                    )} */}
+
                 </>
             }
 
