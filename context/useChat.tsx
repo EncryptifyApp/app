@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Chat, Message, User, useChatQuery, useChatsQuery } from '../generated/graphql';
+import { Chat, Message, MessageStatus, User, useChatQuery, useChatsQuery } from '../generated/graphql';
 import NetInfo from '@react-native-community/netinfo';
 import ChatService from '../services/ChatService';
 import { sortChats } from '../utils/sortChats';
@@ -14,13 +14,15 @@ const ChatContext = createContext<{
     updateChats: (message: Message) => void,
     syncing: boolean,
     getChat: (chatId: string) => Chat | undefined,
-    addNewChat: (newChat: Chat) => void
+    addNewChat: (newChat: Chat) => void,
+    updateMessageStatus: (messageTemoId: string,id:string,status: MessageStatus) => void
 } | null>({
     chats: null,
     updateChats: () => { },
     syncing: false,
     getChat: () => undefined,
-    addNewChat: () => { }
+    addNewChat: () => { },
+    updateMessageStatus: () => { }
 });
 
 
@@ -161,6 +163,24 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
 
+    //update message status and id
+    const updateMessageStatus = async (messageTempId: string,id:string,status: MessageStatus) => {
+        const updatedChats = [...chats!];
+        const chatIndex = updatedChats.findIndex((chat) => chat.messages!.find((message: Message) => message.id === messageTempId));
+        if (chatIndex !== -1) {
+            const chat = updatedChats[chatIndex];
+            const messageIndex = chat.messages!.findIndex((message: Message) => message.id === messageTempId);
+            if (messageIndex !== -1) {
+                chat.messages![messageIndex].id = id;
+                chat.messages![messageIndex].status = status;
+                updatedChats.splice(chatIndex, 1);
+                updatedChats.unshift(chat);
+                setChats(updatedChats);
+                await ChatService.storeChatsLocally(updatedChats);
+            }
+        }
+    }
+
 
     const addNewChat = async (newChat: Chat) => {
         const updatedChats = [...chats!];
@@ -176,7 +196,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <ChatContext.Provider value={{ chats, updateChats, syncing, getChat, addNewChat }}>
+        <ChatContext.Provider value={{ chats, updateChats, syncing, getChat, addNewChat, updateMessageStatus}}>
             {children}
         </ChatContext.Provider>
     );

@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import Button from '../../components/Button';
-import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSendMessageMutation, User, Message, Chat, MessageStatus } from '../../generated/graphql';
 import { useSession } from '../../context/useSession';
 import moment from 'moment';
-import { decryptMessage } from '../../utils/decryptMessage';
 import DateSplitter from '../../components/DateSplitter';
 import { encryptMessage } from '../../utils/encryptMessage';
 import { useChat } from '../../context/useChat';
@@ -26,7 +25,7 @@ export default function ChatScreen() {
     const data = useLocalSearchParams();
     const chatId = data["chatId"] as string
 
-    const { getChat, chats } = useChat() as { getChat: (chatId: string) => Chat | undefined; chats: Chat[] };
+    const { getChat, chats, updateMessageStatus} = useChat() as { getChat: (chatId: string) => Chat | undefined; chats: Chat[], updateMessageStatus: (messageTempId: string,id:string, status: MessageStatus) => void};
     const [, sendMessage] = useSendMessageMutation();
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
@@ -53,39 +52,33 @@ export default function ChatScreen() {
                 content: message,
                 status: MessageStatus.Pending,
                 createdAt: new Date().toISOString(),
-                sender: toUser,
+                sender: user!,
             };
 
             setMessages([...messages, newMessage]);
-
-            // Send message mutation
-            const res = await sendMessage({
-                toUserId: toUser.id || '',
-                content: encryptedMessage || '',
-            });
-
-            if (res.data?.sendMessage?.id) {                
-                // Update message status
-                const updatedMessages = messages.map((msg) => {
-                    if (msg.id === newMessage.id) {
-                        return {
-                            ...msg,
-                            id: res.data!.sendMessage.id,
-                            status: MessageStatus.Sent,
-                        };
-                    }
-                    return msg;
-                });
-                setMessages(updatedMessages);
-
-                // Scroll to the end
-                scrollToBottom();
-            }
+            // Scroll to the end
+            scrollToBottom();
 
             // Clear the input field
             setMessage('');
+
+            //send Message to server
+            await sendMessageToServer(newMessage.id, encryptedMessage!);
         }
     };
+
+    const sendMessageToServer = async (messageId:string,encryptedMessage: string) => {
+        // Send message mutation
+        const res = await sendMessage({
+            toUserId: toUser!.id || '',
+            content: encryptedMessage || '',
+        });
+
+        if (res.data?.sendMessage?.id) {
+            // Update message status
+            updateMessageStatus(messageId,res.data.sendMessage.id ,MessageStatus.Sent);
+        }
+    }
 
     const scrollToBottom = () => {
         // @ts-ignore - scrollToEnd is not recognized by the type definition

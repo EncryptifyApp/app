@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Chat, Message } from '../generated/graphql';
+import { Chat, Message, MessageStatus } from '../generated/graphql';
 
 class ChatService {
 
@@ -80,6 +80,32 @@ class ChatService {
       console.error('Error clearing chats:', error);
       throw error;
     }
+  }
+
+
+  async updateMessageStatus(messageTempId: string,id:string,status: MessageStatus) {
+    try {
+      const storedValue = await AsyncStorage.getItem(this.CHATS_KEY);
+      const chats = storedValue ? JSON.parse(storedValue) : [];
+      const chatIndex = chats.findIndex((chat: Chat) => chat.messages!.find((message: Message) => message.id === messageId));
+
+      if (chatIndex !== -1) {
+        const chat = chats[chatIndex];
+        const messageIndex = chat.messages.findIndex((message: Message) => message.id === messageTempId);
+
+        if (messageIndex !== -1) {
+          chat.messages[messageIndex].id = id;
+          chat.messages[messageIndex].status = status;
+          chats.splice(chatIndex, 1);
+          chats.unshift(chat);
+          await this.storeChatsLocally(chats);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating message status:', error);
+      throw error;
+    }
+    
   }
 
 }
