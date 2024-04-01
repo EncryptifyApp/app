@@ -1,4 +1,4 @@
-fragment messageFragment on Message {
+fragment MessageFragment on Message {
         id
         content
         createdAt

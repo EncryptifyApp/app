@@ -20,16 +20,16 @@ export default function MessageSent({ message }: Props) {
                         {moment(message.createdAt).format('HH:mm')}
                     </Text>
                     {
-                        message.status === MessageStatus.Pending && <Ionicons name="time-outline" size={14} color={'gray'} />
+                        message.status === MessageStatus.Pending && <Ionicons name="time-outline" size={14} color={'black'} />
                     }
                     {
-                        message.status === MessageStatus.Sent && <Ionicons name="checkmark-done" size={14} color={'gray'} />
+                        message.status === MessageStatus.Sent && <Ionicons name="checkmark" size={14} color={'black'} />
                     }
                     {
-                        message.status === MessageStatus.Delivered && <Ionicons name="checkmark-done" size={14} color={'gray'} />
+                        message.status === MessageStatus.Delivered && <Ionicons name="checkmark-done" size={14} color={'black'} />
                     }
                     {
-                        message.status === MessageStatus.Read && <Ionicons name="checkmark-done" size={14} color={'gray'} />
+                        message.status === MessageStatus.Read && <Ionicons name="checkmark-done" size={14} color={'black'} />
                     }
                 </View>
             </View>

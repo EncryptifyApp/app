@@ -5,7 +5,7 @@ import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vect
 import { useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useSendMessageMutation, User, Message, Chat } from '../../generated/graphql';
+import { useSendMessageMutation, User, Message, Chat, MessageStatus } from '../../generated/graphql';
 import { useSession } from '../../context/useSession';
 import moment from 'moment';
 import { decryptMessage } from '../../utils/decryptMessage';
@@ -15,6 +15,7 @@ import { useChat } from '../../context/useChat';
 import Widget from '../../components/Widget';
 import MessageReceived from '../../components/MessageReceived';
 import MessageSent from '../../components/MessageSent';
+import { randomUUID } from 'expo-crypto';
 
 
 export default function ChatScreen() {
@@ -46,16 +47,36 @@ export default function ChatScreen() {
             // Encrypt message
             const encryptedMessage = await encryptMessage(message, toUser);
 
+            //add message to local messages
+            const newMessage: Message = {
+                id: randomUUID(),
+                content: message,
+                status: MessageStatus.Pending,
+                createdAt: new Date().toISOString(),
+                sender: toUser,
+            };
+
+            setMessages([...messages, newMessage]);
+
             // Send message mutation
             const res = await sendMessage({
                 toUserId: toUser.id || '',
                 content: encryptedMessage || '',
             });
 
-            if (res.data?.sendMessage?.id) {
-                // Decrypt and update local messages
-                const decryptedMessage = await decryptMessage(res.data.sendMessage, toUser);
-                setMessages([...messages, decryptedMessage!]);
+            if (res.data?.sendMessage?.id) {                
+                // Update message status
+                const updatedMessages = messages.map((msg) => {
+                    if (msg.id === newMessage.id) {
+                        return {
+                            ...msg,
+                            id: res.data!.sendMessage.id,
+                            status: MessageStatus.Sent,
+                        };
+                    }
+                    return msg;
+                });
+                setMessages(updatedMessages);
 
                 // Scroll to the end
                 scrollToBottom();

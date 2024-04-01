@@ -1,11 +1,5 @@
 mutation SendMessage($toUserId: String!, $content: String!) {
   sendMessage(toUserId: $toUserId, content: $content) {
-      id
-      content
-      status
-      createdAt
-      sender {
-       ...userFragment
-      }
+      ...MessageFragment
   }
 }

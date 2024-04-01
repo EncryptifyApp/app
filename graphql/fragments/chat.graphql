@@ -1,4 +1,4 @@
-fragment chatFragment on Chat {
+fragment ChatFragment on Chat {
     id
     updatedAt
     createdAt
@@ -9,6 +9,6 @@ fragment chatFragment on Chat {
         publicKey
     }
     messages {
-        ...messageFragment
+        ...MessageFragment
     }
 }

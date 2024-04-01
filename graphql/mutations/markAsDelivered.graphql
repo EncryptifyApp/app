@@ -1,0 +1,8 @@
+mutation MarkAsDelivered($messageIds: [String!]!) {
+  markAsDelivered(messageIds: $messageIds) {
+    error {
+      ...FieldErrorFragment
+    }
+    success
+  }
+}
