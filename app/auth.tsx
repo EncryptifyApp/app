@@ -11,6 +11,7 @@ import { Feather } from '@expo/vector-icons';
 import { setStorageItemAsync } from '../utils/useStorageState';
 import { useRouter } from 'expo-router';
 import { generatePhrase } from '../utils/generatePhrase';
+import DecryptingAnimation from '../components/DecryptingAnimation';
 
 type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE' | 'INPUT_USERNAME';
 
@@ -201,7 +202,7 @@ export default function Auth() {
       }
       if (data?.authenticate.sessionToken) {
         authenticateUser(data.authenticate.sessionToken);
-        router.push('/');
+        router.push('/(app)/')
       }
     }
     catch (error) {
@@ -233,7 +234,7 @@ export default function Auth() {
           source={require('../assets/images/logo.png')}
           className="w-24 h-24 mb-5" /><View className="flex flex-row justify-center my-5 text-white">
             <TextInput
-              placeholder="XXXXX-XXXXX-XXXXX"
+              placeholder="License key"
               placeholderTextColor="gray"
               autoCapitalize='characters'
               className="w-full p-2 text-gray-200 border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
@@ -250,6 +251,7 @@ export default function Auth() {
             weight="semibold"
             disabled={licenseKey.length !== 17}
             onPress={FindLicense} />
+            {/* <DecryptingAnimation finalText="Decrypting Text..." duration={3000} /> */}
           <Text className="text-white text-base font-primary-medium text-center mt-8">If you do not have a license key, you can acquire one through our official website.</Text>
         </>
 

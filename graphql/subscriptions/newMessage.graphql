@@ -3,7 +3,6 @@ subscription NewMessage {
         id
         content
         createdAt
-        status
         sender {
             ...userFragment
         }

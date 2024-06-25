@@ -1,4 +1,4 @@
-import { Redirect, SplashScreen, Stack} from 'expo-router';
+import { Redirect, SplashScreen, Stack, usePathname} from 'expo-router';
 import { useSession } from '../../context/useSession';
 import {
     useFonts,
@@ -15,6 +15,13 @@ import { useChat } from '../../context/useChat';
 SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
+    const pathname = usePathname();
+    useEffect(() => {
+        console.log("current route", pathname);
+    }
+    , [pathname]);
+
+
     const { session, isLoading } = useSession() || { session: null, isLoading: true };
     const {syncing} = useChat() as {syncing:boolean};
     const [[, privateKey]] = useStorageState(PRIVATE_KEY);
@@ -38,6 +45,9 @@ export default function AppLayout() {
     }
 
     if (!session || !privateKey) {
+        console.log("session", session);
+        console.log("privateKey", privateKey);
+        console.log("redirecting to auth");
         return <Redirect href="/auth" />;
     }
 

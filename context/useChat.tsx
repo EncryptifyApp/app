@@ -25,7 +25,7 @@ const ChatContext = createContext<{
 
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-    const { user } = useSession() as { user: User | null };
+    const { user, fetching } = useSession() as { user: User | null, fetching: boolean };
 
     const [isConnected, setIsConnected] = useState<boolean>();
     const [chats, setChats] = useState<Chat[]>([]);
@@ -52,11 +52,11 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const fetchData = async () => {
-            
+
             const { data } = res;
             if (data) {
                 const chat = data.chat!;
-                if(chats.find((c) => c.id === chat.id)) {
+                if (chats.find((c) => c.id === chat.id)) {
                     return;
                 }
                 const decryptedChat = await decryptChat(chat, user!);
@@ -78,17 +78,25 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         return () => {
             unsubscribe();
         };
-    }, [])
+    }, [user])
 
 
 
     useEffect(() => {
-        if (user) {
-            fetchDataFromLocalStorage();
+        const fetchData = async () => {
+            await fetchDataFromLocalStorage();
+        };
+
+        if(!fetching && !user) {
+            setSyncing(false);
+            return;
         }
+
+        fetchData();
     }, [user]);
 
     const fetchDataFromLocalStorage = async () => {
+        console.log('fetching data from local storage')
         try {
             // Fetch chats from local storage
             const localChats = await ChatService.getLocalChats();
@@ -96,16 +104,16 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
                 // If no local chats found, stop syncing and set chats to an empty array
                 setSyncing(false);
                 setChats([]);
-                return;
             }
-    
             // Decrypt local chats
-            const decryptedChats = await decryptChats(localChats, user!);
+            const decryptedChats = await decryptChats(localChats, user!)
+
             // Update state with sorted decrypted local messages
-            setChats(sortChats(decryptedChats!));
-            
+            setChats(sortChats(localChats!));
             // Check if the user is connected to the internet
+            
             if (isConnected) {
+                
                 // If connected, fetch data from the server
                 await fetchDataFromServer();
             } else {
@@ -113,18 +121,18 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
                 setSyncing(false);
             }
         } catch (error) {
-            console.error('Error fetching messages:', error);
+            console.error('Error fetching messages from localstorage:', error);
             // Handle errors gracefully
         }
     };
-    
+
 
     const fetchDataFromServer = async () => {
+        console.log('fetching data from server')
         try {
             // Fetch messages from the server
             if (data?.chats) {
                 const serverChats = data.chats;
-
                 // Store server chats encrypted in local storage
                 await ChatService.storeChatsLocally(serverChats);
                 //decrypt the server chats
@@ -144,7 +152,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
         let chat = updatedChats[chatIndex];
         let toUser;
-        
+
         if (chatIndex !== -1) {
             toUser = chat.members?.find((member) => member.id !== user?.id)
             const decryptedMessage = await decryptMessage(newMessage, toUser!);
