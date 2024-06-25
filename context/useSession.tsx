@@ -10,12 +10,14 @@ const AuthContext = React.createContext<{
   user: User | null;
   session?: string | null;
   isLoading: boolean;
+  fetching: boolean;
 } | null>({
   authenticateUser: async (sessionToken: string) => { },
   signOut: async () => { },
   user: null,
   session: null,
-  isLoading: false,
+  isLoading: true,
+  fetching: true
 });
 
 export function useSession() {
@@ -62,6 +64,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
         user,
         session,
         isLoading,
+        fetching
       }}>
       {props.children}
     </AuthContext.Provider>

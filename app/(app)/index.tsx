@@ -3,8 +3,7 @@ import { useSession } from '../../context/useSession'
 import { Message, User, useNewMessageSubscription } from '../../generated/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import Button from '../../components/Button';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useChat } from '../../context/useChat';
 import { useRouter } from 'expo-router';
 import Header from "../../components/Header"

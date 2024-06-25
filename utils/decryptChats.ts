@@ -14,13 +14,19 @@ export const decryptChats = async (chats: Chat[], user: User) => {
     if(chats.length == 0) return [];
 
     const decryptedChats = chats.map((chat) => {
-        const toUser = chat.members?.find((member) => member.id !== user?.id);
+        if(chat.messages?.length == 0) {
+            console.log(chat)
+            return { ...chat };
+        };
 
+        const toUser = chat.members?.find((member) => member.id !== user?.id);
+        
         if (!toUser?.publicKey || typeof toUser.publicKey !== 'string') {
             console.error("INVALID PUBLIC KEY");
             return chat;
         }
 
+        
         const decryptedMessages = chat.messages?.map((message) => {
             const userPublicKeyBase64 = toUser.publicKey;
             const userPublicKey = decodeBase64(userPublicKeyBase64!);
