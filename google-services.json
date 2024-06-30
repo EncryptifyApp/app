@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "604366646274",
+    "project_id": "encryptify-79f27",
+    "storage_bucket": "encryptify-79f27.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:604366646274:android:96ef827142cc8117aa4b1b",
+        "android_client_info": {
+          "package_name": "com.app.encryptify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiNNZn3wuDYb1ZTz79Fa0MWxFSxyYkF-4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

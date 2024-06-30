@@ -11,11 +11,11 @@ export const decryptChats = async (chats: Chat[], user: User) => {
         console.error("NO PRIVATE KEY");
         return [];
     }
+    
     if(chats.length == 0) return [];
 
     const decryptedChats = chats.map((chat) => {
         if(chat.messages?.length == 0) {
-            console.log(chat)
             return { ...chat };
         };
 

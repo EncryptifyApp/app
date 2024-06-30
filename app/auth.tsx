@@ -9,7 +9,7 @@ import { decryptPrivateKey, encryptPrivateKey, generateKeyPair } from '../utils/
 import { encode } from '@stablelib/base64';
 import { Feather } from '@expo/vector-icons';
 import { setStorageItemAsync } from '../utils/useStorageState';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { generatePhrase } from '../utils/generatePhrase';
 import DecryptingAnimation from '../components/DecryptingAnimation';
 
@@ -17,7 +17,7 @@ type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE
 
 
 export default function Auth() {
-  const router = useRouter();
+
   const { authenticateUser } = useSession() || {
     authenticateUser: async (sessionToken: string) => { }
   }
@@ -202,7 +202,7 @@ export default function Auth() {
       }
       if (data?.authenticate.sessionToken) {
         authenticateUser(data.authenticate.sessionToken);
-        router.push('/(app)/')
+        router.replace('/')
       }
     }
     catch (error) {

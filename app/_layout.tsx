@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Provider, createClient, fetchExchange, cacheExchange, subscriptionExchange } from 'urql';
 import { createClient as createWSClient } from 'graphql-ws';
 import { Slot } from 'expo-router';
@@ -6,15 +6,27 @@ import { SessionProvider } from '../context/useSession';
 import { useStorageState } from '../utils/useStorageState';
 import { httpUrl, wsUrl } from '../config';
 import { ChatProvider } from '../context/useChat';
+import NetInfo from '@react-native-community/netinfo';
 
 const Root = () => {
   const [[, session]] = useStorageState('session');
-
-  // Create WebSocket client
-  let wsClient: any;
+  const [isConnected, setIsConnected] = useState(false);
+  const [wsClient, setWsClient] = useState<any>(null);
 
   useEffect(() => {
-    const createWebSocketClient = (session: string) => createWSClient({
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected!);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    let client: any;
+
+    const createWebSocketClient = (session:string) => createWSClient({
       url: wsUrl,
       connectionParams: {
         authorization: session ? `${session}` : null,
@@ -24,26 +36,69 @@ const Root = () => {
           console.log('WebSocket connected');
         },
         error: (err) => {
-          console.error('WebSocket error', err);
+          if (client) {
+            client.terminate();
+            setWsClient(null);
+          }
         },
       },
     });
 
-    const initWebSocketClient = async () => {
-      if (session) {
-        wsClient = createWebSocketClient(session);
+    const initWebSocketClient = () => {
+      if (session && isConnected) {
+        client = createWebSocketClient(session);
+        setWsClient(client);
+      } else {
+        setWsClient(null);
       }
     };
 
     initWebSocketClient();
 
     return () => {
-      if (wsClient) {
-        wsClient.terminate();
-        wsClient = null;
+      if (client) {
+        client.terminate();
+        setWsClient(null);
       }
     };
-  }, [session]);
+  }, [session, isConnected]);
+
+  useEffect(() => {
+    const handleReconnect = () => {
+      if (session && isConnected && !wsClient) {
+        const client = createWSClient({
+          url: wsUrl,
+          connectionParams: {
+            authorization: session ? `${session}` : null,
+          },
+          on: {
+            connected: () => {
+              console.log('Handling reconnect: WebSocket connected');
+            },
+            error: (err) => {
+              if (client) {
+                client.terminate();
+                setWsClient(null);
+              }
+            },
+          },
+        });
+        setWsClient(client);
+      }
+    };
+
+    handleReconnect();
+
+    const unsubscribe = NetInfo.addEventListener(state => {
+      if (state.isConnected) {
+        handleReconnect();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [session, isConnected]);
 
   // Create HTTP client
   const client = createClient({
@@ -56,6 +111,15 @@ const Root = () => {
       fetchExchange,
       subscriptionExchange({
         forwardSubscription(request) {
+          if (!wsClient) {
+            return {
+              subscribe: (sink) => {
+                sink.error(new Error('WebSocket client not initialized'));
+                return { unsubscribe: () => {} };
+              },
+            };
+          }
+
           const input = { ...request, query: request.query || '' };
           return {
             subscribe(sink) {

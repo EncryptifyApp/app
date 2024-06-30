@@ -83,11 +83,11 @@ class ChatService {
   }
 
 
-  async updateMessageStatus(messageTempId: string,id:string,status: MessageStatus) {
+  async updateMessageStatus(messageTempId: string,id:string, createdAt: Date) {
     try {
       const storedValue = await AsyncStorage.getItem(this.CHATS_KEY);
       const chats = storedValue ? JSON.parse(storedValue) : [];
-      const chatIndex = chats.findIndex((chat: Chat) => chat.messages!.find((message: Message) => message.id === messageId));
+      const chatIndex = chats.findIndex((chat: Chat) => chat.messages!.find((message: Message) => message.id === messageTempId));
 
       if (chatIndex !== -1) {
         const chat = chats[chatIndex];
@@ -95,7 +95,8 @@ class ChatService {
 
         if (messageIndex !== -1) {
           chat.messages[messageIndex].id = id;
-          chat.messages[messageIndex].status = status;
+          chat.messages[messageIndex].status = MessageStatus.Sent;
+          chat.messages[messageIndex].createdAt = createdAt;
           chats.splice(chatIndex, 1);
           chats.unshift(chat);
           await this.storeChatsLocally(chats);
@@ -106,6 +107,28 @@ class ChatService {
       throw error;
     }
     
+  }
+
+  //get all pending messages
+  async getPendingMessages(): Promise<Message[]> {
+    try {
+      const storedValue = await AsyncStorage.getItem(this.CHATS_KEY);
+      const chats = storedValue ? JSON.parse(storedValue) : [];
+      
+      // Check if chats are not empty
+      if (!chats || chats.length === 0) return [];
+  
+      // Filter for pending messages
+      const pendingMessages = chats
+        .filter((chat: Chat) => chat.messages && chat.messages.length > 0)
+        .map((chat: Chat) => chat.messages!.filter((message: Message) => message.status === MessageStatus.Pending))
+        .flat();
+  
+      return pendingMessages;
+    } catch (error) {
+      console.error('Error getting pending messages:', error);
+      throw error;
+    }
   }
 
 }

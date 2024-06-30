@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Chat, Message, MessageStatus, User, useChatQuery, useChatsQuery } from '../generated/graphql';
+import { Chat, Message, MessageStatus, User, useChatQuery, useChatsQuery, useSendPendingMessageMutation } from '../generated/graphql';
 import NetInfo from '@react-native-community/netinfo';
 import ChatService from '../services/ChatService';
 import { sortChats } from '../utils/sortChats';
@@ -8,28 +8,20 @@ import { useSession } from './useSession';
 import { decryptMessage } from '../utils/decryptMessage';
 import { decryptChat } from '../utils/decryptChat';
 
-
 const ChatContext = createContext<{
     chats: Chat[] | null,
     updateChats: (message: Message) => void,
     syncing: boolean,
     getChat: (chatId: string) => Chat | undefined,
     addNewChat: (newChat: Chat) => void,
-    updateMessageStatus: (messageTemoId: string,id:string,status: MessageStatus) => void
-} | null>({
-    chats: null,
-    updateChats: () => { },
-    syncing: false,
-    getChat: () => undefined,
-    addNewChat: () => { },
-    updateMessageStatus: () => { }
-});
-
+    updateMessage: (messageTempId: string, id: string, status: MessageStatus, createdAt: Date) => void,
+    isConnected: boolean | null
+} | null>(null);
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const { user, fetching } = useSession() as { user: User | null, fetching: boolean };
 
-    const [isConnected, setIsConnected] = useState<boolean>();
+    const [isConnected, setIsConnected] = useState<boolean | null>(null);
     const [chats, setChats] = useState<Chat[]>([]);
     const [syncing, setSyncing] = useState<boolean>(true);
     const [result] = useChatsQuery();
@@ -39,6 +31,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const [res, reexecuteQuery] = useChatQuery({ variables: { id: chatId }, pause: chatId === '' });
     const reexecuteQueryRef = useRef(reexecuteQuery);
 
+    const [, sendPendingMessage] = useSendPendingMessageMutation();
     useEffect(() => {
         reexecuteQueryRef.current = reexecuteQuery;
     }, [reexecuteQuery]);
@@ -51,10 +44,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, [chatId]);
 
-
     useEffect(() => {
         const fetchData = async () => {
-
             const { data } = res;
             if (data) {
                 const chat = data.chat!;
@@ -70,9 +61,38 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         fetchData();
     }, [res]);
 
-
+    const sendPendingMessages = async () => {
+        try {
+            const pendings = await ChatService.getPendingMessages();
+            if (pendings.length === 0) return;
+            for (const message of pendings) {
+                const res = await sendPendingMessage({
+                    chatId: message.chat!.id,
+                    content: message.content,
+                });
+                if (res.data?.sendPendingMessage.id) {
+                    updateMessage(message.id, res.data.sendPendingMessage.id, res.data.sendPendingMessage.status!, res.data.sendPendingMessage.createdAt);
+                }
+            }
+        } catch (error) {
+            console.error('Error sending pending messages:', error);
+        }
+    };
 
     useEffect(() => {
+        if (isConnected && user) {
+            sendPendingMessages();
+        }
+    }, [isConnected, user]);
+
+    useEffect(() => {
+        const fetchNetworkStatus = async () => {
+            const state = await NetInfo.fetch();
+            setIsConnected(state.isConnected);
+        };
+
+        fetchNetworkStatus();
+
         const unsubscribe = NetInfo.addEventListener(state => {
             setIsConnected(state.isConnected!);
         });
@@ -80,66 +100,48 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         return () => {
             unsubscribe();
         };
-    }, [user])
-
-
+    }, [user]);
 
     useEffect(() => {
         const fetchData = async () => {
-            await fetchDataFromLocalStorage();
+            if (isConnected !== null && user) {
+                setSyncing(true);
+                await fetchDataFromLocalStorage();
+            }
         };
 
-        if(!fetching && !user) {
-            setSyncing(false);
-            return;
-        }
-
         fetchData();
-    }, [user]);
+    }, [user, isConnected]);
+
+
+    
 
     const fetchDataFromLocalStorage = async () => {
-        console.log('fetching data from local storage')
         try {
-            // Fetch chats from local storage
+            console.log("fetching data from local storage");
             const localChats = await ChatService.getLocalChats();
-            if (localChats.length === 0) {
-                // If no local chats found, stop syncing and set chats to an empty array
-                setSyncing(false);
-                setChats([]);
-            }
-            // Decrypt local chats
-            const decryptedChats = await decryptChats(localChats, user!)
+            const decryptedChats = await decryptChats(localChats, user!);
+            setChats(sortChats(decryptedChats!));
 
-            // Update state with sorted decrypted local messages
-            setChats(sortChats(localChats!));
-            // Check if the user is connected to the internet
-            
-            if (isConnected) {
-                
-                // If connected, fetch data from the server
+            if (isConnected != null && isConnected) {
                 await fetchDataFromServer();
             } else {
-                // If not connected, stop syncing
+                console.log("not connected");
                 setSyncing(false);
             }
         } catch (error) {
             console.error('Error fetching messages from localstorage:', error);
-            // Handle errors gracefully
         }
     };
 
-
     const fetchDataFromServer = async () => {
-        console.log('fetching data from server')
         try {
-            // Fetch messages from the server
+            setSyncing(true);
+            console.log("fetching data from server");
             if (data?.chats) {
                 const serverChats = data.chats;
-                // Store server chats encrypted in local storage
                 await ChatService.storeChatsLocally(serverChats);
-                //decrypt the server chats
                 const decryptedChats = await decryptChats(serverChats, user!);
-                // Update state with sorted server messages
                 setChats(sortChats(decryptedChats!));
             }
         } catch (error) {
@@ -150,53 +152,60 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const updateChats = async (newMessage: Message) => {
-        const updatedChats = [...chats!];
-        const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
-        let chat = updatedChats[chatIndex];
-        let toUser;
+        try {
+            const updatedChats = [...chats!];
+            const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage!.chat!.id);
+            let chat = updatedChats[chatIndex];
+            let toUser;
 
-        if (chatIndex !== -1) {
-            toUser = chat.members?.find((member) => member.id !== user?.id)
-            const decryptedMessage = await decryptMessage(newMessage, toUser!);
-            const existingChat = updatedChats[chatIndex];
-            existingChat.messages = [...existingChat.messages as Message[], decryptedMessage as Message];
-            updatedChats.splice(chatIndex, 1);
-            updatedChats.unshift(existingChat);
-        } else {
-            setChatId(newMessage.chat!.id);
+            if (chatIndex !== -1) {
+                toUser = chat.members?.find((member) => member.id !== user?.id);
+                const decryptedMessage = await decryptMessage(newMessage, toUser!);
+                const existingChat = updatedChats[chatIndex];
+                existingChat.messages = [...existingChat.messages as Message[], decryptedMessage as Message];
+                updatedChats.splice(chatIndex, 1);
+                updatedChats.unshift(existingChat);
+            } else {
+                setChatId(newMessage.chat!.id);
+            }
+
+            setChats(updatedChats);
+            await ChatService.addMessageToChatStorage(newMessage);
+        } catch (error) {
+            console.error('Error updating chats:', error);
         }
-
-        setChats(updatedChats);
-        await ChatService.addMessageToChatStorage(newMessage);
     };
 
-
-    //update message status and id
-    const updateMessageStatus = async (messageTempId: string,id:string,status: MessageStatus) => {
-        const updatedChats = [...chats!];
-        const chatIndex = updatedChats.findIndex((chat) => chat.messages!.find((message: Message) => message.id === messageTempId));
-        if (chatIndex !== -1) {
-            const chat = updatedChats[chatIndex];
-            const messageIndex = chat.messages!.findIndex((message: Message) => message.id === messageTempId);
-            if (messageIndex !== -1) {
-                chat.messages![messageIndex].id = id;
-                chat.messages![messageIndex].status = status;
-                updatedChats.splice(chatIndex, 1);
-                updatedChats.unshift(chat);
-                setChats(updatedChats);
-                await ChatService.storeChatsLocally(updatedChats);
+    const updateMessage = async (messageTempId: string, id: string, status: MessageStatus, createdAt: Date) => {
+        try {
+            const updatedChats = [...chats!];
+            const chatIndex = updatedChats.findIndex((chat) => chat.messages!.some((message: Message) => message.id === messageTempId));
+            if (chatIndex !== -1) {
+                const chat = updatedChats[chatIndex];
+                const messageIndex = chat.messages!.findIndex((message: Message) => message.id === messageTempId);
+                if (messageIndex !== -1) {
+                    chat.messages![messageIndex].id = id;
+                    chat.messages![messageIndex].status = status;
+                    chat.messages![messageIndex].createdAt = createdAt;
+                    setChats(updatedChats);
+                    await ChatService.updateMessageStatus(messageTempId, id, createdAt);
+                }
             }
+        } catch (error) {
+            console.error('Error updating message:', error);
         }
-    }
-
+    };
 
     const addNewChat = async (newChat: Chat) => {
-        const updatedChats = [...chats!];
-        updatedChats.unshift(newChat);
-        setChats(sortChats(updatedChats));
-        await ChatService.addChatToStorage(newChat);
-    }
-
+        try {
+            const updatedChats = [...chats!];
+            updatedChats.unshift(newChat);
+            setChats(sortChats(updatedChats));
+            await ChatService.addChatToStorage(newChat);
+        } catch (error) {
+            console.error('Error adding new chat:', error);
+        }
+    };
 
     const getChat = (chatId: string) => {
         const chat = chats?.find((chat) => chat.id === chatId);
@@ -204,12 +213,16 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <ChatContext.Provider value={{ chats, updateChats, syncing, getChat, addNewChat, updateMessageStatus}}>
+        <ChatContext.Provider value={{ chats, updateChats, syncing, getChat, addNewChat, updateMessage, isConnected }}>
             {children}
         </ChatContext.Provider>
     );
 };
 
 export const useChat = () => {
-    return useContext(ChatContext);
+    const context = useContext(ChatContext);
+    if (!context) {
+        throw new Error("useChat must be used within a ChatProvider");
+    }
+    return context;
 };

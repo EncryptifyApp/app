@@ -17,11 +17,11 @@ const Header = ({ syncing, title }: Props) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const dropdownOptions: DropdownOption = [
-        {
-            label: 'Settings',
-            onPress: () => { },
-            destructive: false,
-        },
+        // {
+        //     label: 'Settings',
+        //     onPress: () => { },
+        //     destructive: false,
+        // },
         {
             label: 'Sign out',
             onPress: () => AlertUserOnSignOut(),

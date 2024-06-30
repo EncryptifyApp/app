@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useStorageState } from '../utils/useStorageState';
 import { User, useAuthenticatedUserQuery } from '../generated/graphql';
 import ChatService from '../services/ChatService';
+import UserService from '../services/UserService';
 
-
-const AuthContext = React.createContext<{
+export const AuthContext = React.createContext<{
   authenticateUser: (sessionToken: string) => void;
   signOut: () => void;
   user: User | null;
@@ -42,12 +42,18 @@ export function SessionProvider(props: React.PropsWithChildren) {
   useEffect(() => {
     if (data?.authenticatedUser) {
       setUser(data.authenticatedUser);
+      UserService.storeUserLocally(data.authenticatedUser);
     }
-    else if (fetching == false && !data?.authenticatedUser) {
-      setUser(null);
-    } 
+  }, [data, fetching]);
 
-  }, [data, fetching])
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await UserService.getLocalUser();
+      setUser(user);
+    };
+  
+    fetchUser();
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -60,6 +66,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
         signOut: () => {
           ChatService.clearChats();
           setSession(null);
+          UserService.clearLocalUser();
         },
         user,
         session,

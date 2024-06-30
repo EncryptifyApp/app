@@ -4,7 +4,7 @@ import QRcode from 'react-native-qrcode-svg';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { useSession } from '../../context/useSession';
-import { Chat, User, useGetChatbyUserKeyQuery } from '../../generated/graphql';
+import { Chat, User,useGetChatbyUserIdQuery } from '../../generated/graphql';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useRouter } from 'expo-router';
 import { useChat } from '../../context/useChat';
@@ -20,11 +20,11 @@ export default function AddContact() {
     const [tabSelected, setTabSelected] = useState<"MYQR" | "SCANQR">("MYQR");
 
     //user to be scanned
-    const [licenseKey, setLicenseKey] = useState<string>('');
-    const [isLicenseKeyCopied, setIsLicenseKeyCopied] = useState<boolean>(false);
+    const [id, setId] = useState<string>('');
+    const [isIdCopied, setIsIdCopied] = useState<boolean>(false);
 
 
-    const [result, reexecuteQuery] = useGetChatbyUserKeyQuery({ variables: { licenseKey: licenseKey }, pause: licenseKey === '' });
+    const [result, reexecuteQuery] = useGetChatbyUserIdQuery({ variables: { id: id }, pause: id === '' });
     //scanning the QR
     const [hasPermission, setHasPermission] = useState<any>();
     const [scanned, setScanned] = useState(false);
@@ -42,18 +42,18 @@ export default function AddContact() {
 
     const handleBarCodeScanned = ({ data }: { data: string }) => {
         setScanned(true);
-        const key = data;
-        if (typeof key === 'string') {
-            setLicenseKey(key);
+        const id = data;
+        if (typeof id === 'string') {
+            setId(id);
             reexecuteQuery();
         }
     };
 
 
-    const handleCopyLicenseKey = async () => {
+    const handleCopyId = async () => {
         await Clipboard.setStringAsync(user!.licenseKey!)
             .then(() => {
-                setIsLicenseKeyCopied(true);
+                setIsIdCopied(true);
             });
     };
 
@@ -61,7 +61,7 @@ export default function AddContact() {
     useEffect(() => {
         const handleBarCodeScanned = () => {
             if (result.data) {
-                if (result.data.getChatbyUserKey === null) {
+                if (result.data.getChatbyUserId === null) {
                     Alert.alert("Not a valid QR code", "The user you are trying to reach is not found. Please try again", [
                         {
                             text: "OK",
@@ -72,15 +72,15 @@ export default function AddContact() {
                     return;
                 }
                 //get the chat
-                const chatId = result.data.getChatbyUserKey?.id;
+                const chatId = result.data.getChatbyUserId?.id;
                 const chat = getChat(chatId!);
                 if (chat) {
                     //navigate the user to the chat screen
-                    router.push({ pathname: "/chat", params: { chatId: chatId } });
+                    router.replace({ pathname: "/chat", params: { chatId: chatId } });
                 }
                 else {
-                    addNewChat(result.data.getChatbyUserKey!);
-                    router.push({ pathname: "/chat", params: { chatId: chatId } });
+                    addNewChat(result.data.getChatbyUserId!);
+                    router.replace({ pathname: "/chat", params: { chatId: chatId } });
                 }
             }
         }
@@ -141,7 +141,7 @@ export default function AddContact() {
                                     {/* QR Code Image */}
                                     <View className='flex flex-col justify-center items-center rounded-lg p-2 bg-white'>
                                         <QRcode
-                                            value={user?.licenseKey!}
+                                            value={user?.id!}
                                             logo={require('../../assets/images/logo.png')}
                                             logoSize={30}
                                             size={120}
@@ -158,10 +158,10 @@ export default function AddContact() {
                                     {/* License Key Display */}
                                     <View className="flex-row items-center">
                                         <Text className="flex-1 py-2 px-5 text-white text-lg font-primary-regular rounded-md bg-steel-gray mr-2">
-                                            {user?.licenseKey}
+                                            {user?.id}
                                         </Text>
-                                        <TouchableOpacity onPress={handleCopyLicenseKey}>
-                                            {isLicenseKeyCopied ? (
+                                        <TouchableOpacity onPress={handleCopyId}>
+                                            {isIdCopied ? (
                                                 <Feather name="check" size={24} color="white" />
                                             ) : (
                                                 <Feather name="copy" size={24} color="white" />

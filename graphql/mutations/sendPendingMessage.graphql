@@ -1,0 +1,5 @@
+mutation SendPendingMessage($chatId: String!, $content: String!) {
+  sendPendingMessage(chatId: $chatId, content: $content) {
+      ...MessageFragment
+  }
+}

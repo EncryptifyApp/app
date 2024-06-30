@@ -1,4 +1,4 @@
-import { Redirect, SplashScreen, Stack, usePathname} from 'expo-router';
+import { Redirect, SplashScreen, Stack} from 'expo-router';
 import { useSession } from '../../context/useSession';
 import {
     useFonts,
@@ -7,24 +7,14 @@ import {
     Rajdhani_600SemiBold,
     Rajdhani_700Bold,
 } from '@expo-google-fonts/rajdhani';
-import { PRIVATE_KEY } from '../../constants';
-import { useStorageState } from '../../utils/useStorageState';
-import { useEffect } from 'react';
 import { useChat } from '../../context/useChat';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
-    const pathname = usePathname();
-    useEffect(() => {
-        console.log("current route", pathname);
-    }
-    , [pathname]);
-
-
-    const { session, isLoading } = useSession() || { session: null, isLoading: true };
+    const { session, isLoading} = useSession() as { session: null, isLoading: true};
     const {syncing} = useChat() as {syncing:boolean};
-    const [[, privateKey]] = useStorageState(PRIVATE_KEY);
+
     let [fontsLoaded, fontError] = useFonts({
         Rajdhani_400Regular,
         Rajdhani_500Medium,
@@ -33,21 +23,17 @@ export default function AppLayout() {
     });
 
 
-    useEffect(() => {
-        if (!isLoading && !syncing) {
-            SplashScreen.hideAsync();
-        }
-    }, [isLoading,syncing]);
+    if(!syncing && !isLoading) {
+        SplashScreen.hideAsync();
+    }
 
     // Prevent rendering until the font has loaded or an error was returned
     if (!fontsLoaded && !fontError) {
         return null;
     }
 
-    if (!session || !privateKey) {
-        console.log("session", session);
-        console.log("privateKey", privateKey);
-        console.log("redirecting to auth");
+
+    if (!session) {
         return <Redirect href="/auth" />;
     }
 

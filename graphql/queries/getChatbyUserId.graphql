@@ -1,0 +1,5 @@
+query GetChatbyUserId($id: String!) {
+  getChatbyUserId(id: $id) {
+     ...ChatFragment
+  }
+}

@@ -22,7 +22,8 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
 
     // TODO: this is temporary
     // we should remove this when we implement read receipts
-    const [isNewMessage, setIsNewMessage] = useState<boolean>(false);
+    const [newMessages, setNewMessages] = useState<number>(0);
+
 
     useEffect(() => {
         if (chat.messages!.length != 0) {
@@ -32,7 +33,7 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
 
     useEffect(() => {
         if (chatIdToUpdated === chat.id && chat.messages!.length != 0) {
-            setIsNewMessage(true);
+            setNewMessages(newMessages + 1);
             setLastMessage(chat.messages![chat.messages!.length - 1].content);
         }
     }, [chatIdToUpdated, chat, chats]);
@@ -63,7 +64,7 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
 
     return (
         <TouchableOpacity onPress={() => {
-            setIsNewMessage(false);
+            setNewMessages(0);
             router.push({ pathname: "/chat", params: { chatId: chat.id } });
         }}>
             <View className='flex flex-row justify-between bg-midnight-black py-2 px-3'>
@@ -77,14 +78,14 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
                         <Text
                             numberOfLines={1}
                             ellipsizeMode='tail'
-                            className={`${isNewMessage ? "font-primary-semibold" : "font-primary-regular"} text-gray-400 text-base overflow-hidden whitespace-nowrap overflow-ellipsis`}
+                            className={`${newMessages > 0 ? "font-primary-semibold" : "font-primary-regular"} text-gray-400 text-base overflow-hidden whitespace-nowrap overflow-ellipsis`}
                         >
                             {lastMessage}
                         </Text>
                     </View>
                 </View>
 
-                <View className={`flex flex-col items-center ${isNewMessage ? "justify-around" : "justify-start"}`}>
+                <View className={`flex flex-col items-center ${newMessages > 0 ? "justify-around" : "justify-start"}`}>
                     {chat.messages!.length > 0 && (
                         <View>
                             <Text className='text-white font-primary-regular text-base'>
@@ -93,19 +94,15 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
                         </View>
                     )}
 
-                    {isNewMessage && chat.messages![chat.messages!.length - 1].sender.id !== user?.id && (
+                    {newMessages > 0 && chat.messages![chat.messages!.length - 1].sender.id !== user?.id && (
                         <View className='rounded-full bg-primary px-1.5'>
-                            <Text className='font-primary-bold text-center text-sm'>E</Text>
+                            <Text className='font-primary-bold text-center text-sm'>
+                                E
+                            </Text>
                         </View>
                     )}
 
-                    {
-                        isNewMessage && chat.messages![chat.messages!.length - 1].sender.id === user?.id && (
-                            <View className='rounded-full bg-primary px-1.5'>
-                                <Text className='font-primary-bold text-center text-sm'>S</Text>
-                            </View>
-                        )
-                    }
+                    
                 </View>
             </View>
         </TouchableOpacity>

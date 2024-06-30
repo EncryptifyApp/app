@@ -2,6 +2,9 @@
 import { Chat } from "../generated/graphql";
 
 export const sortChats = (chats: Chat[]): Chat[] => {
+    //if there is no chats
+    if(!chats) return [];
+    //if there is only one chat
     if(chats.length == 0 || chats.length == 1) {
         return chats;
     }
