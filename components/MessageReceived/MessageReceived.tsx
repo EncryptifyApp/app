@@ -1,15 +1,23 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import moment from 'moment';
-import { Message} from '../../generated/graphql';
+import { Message } from '../../generated/graphql';
+import * as Clipboard from 'expo-clipboard';
 
 interface Props {
     message: Message;
 }
 
 const MessageReceived: React.FC<Props> = ({ message }) => {
+    const handleLongPress = async (content: string) => {
+        await Clipboard.setStringAsync(content);
+    };
+
     return (
-        <View className="justify-start items-start mb-2">
+        <TouchableOpacity
+            onLongPress={() => handleLongPress(message.content)}
+            className="justify-start items-start mb-2"
+        >
             <View className="bg-steel-gray rounded-md p-2 max-w-xs">
                 <Text className="text-white font-primary-semibold text-base">
                     {message.content}
@@ -20,7 +28,7 @@ const MessageReceived: React.FC<Props> = ({ message }) => {
                     </Text>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
 

@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Provider, createClient, fetchExchange, cacheExchange, subscriptionExchange } from 'urql';
 import { createClient as createWSClient } from 'graphql-ws';
 import { Slot } from 'expo-router';
-import { SessionProvider } from '../context/useSession';
 import { useStorageState } from '../utils/useStorageState';
 import { httpUrl, wsUrl } from '../config';
-import { ChatProvider } from '../context/useChat';
 import NetInfo from '@react-native-community/netinfo';
-
+import { Provider as PaperProvider } from 'react-native-paper';
+import { SessionProvider } from '../context/useSession';
 const Root = () => {
   const [[, session]] = useStorageState('session');
   const [isConnected, setIsConnected] = useState(false);
@@ -26,7 +25,7 @@ const Root = () => {
   useEffect(() => {
     let client: any;
 
-    const createWebSocketClient = (session:string) => createWSClient({
+    const createWebSocketClient = (session: string) => createWSClient({
       url: wsUrl,
       connectionParams: {
         authorization: session ? `${session}` : null,
@@ -115,7 +114,7 @@ const Root = () => {
             return {
               subscribe: (sink) => {
                 sink.error(new Error('WebSocket client not initialized'));
-                return { unsubscribe: () => {} };
+                return { unsubscribe: () => { } };
               },
             };
           }
@@ -135,9 +134,9 @@ const Root = () => {
   return (
     <Provider value={client}>
       <SessionProvider>
-        <ChatProvider>
+        <PaperProvider>
           <Slot />
-        </ChatProvider>
+        </PaperProvider>
       </SessionProvider>
     </Provider>
   );

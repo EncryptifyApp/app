@@ -1,59 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import React, { useEffect } from 'react';
+import { View, StyleSheet } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
-const DecryptingAnimation = ({ finalText, duration }: { finalText: string, duration: number }) => {
-    const [displayedText, setDisplayedText] = useState('');
-    const animationProgress = useSharedValue(0);
+interface Props {
+  text: string;
+  duration: number; // in milliseconds
+}
+
+const DecryptingAnimation = ({ text, duration }: Props) => {
+  const displayedText = useSharedValue('');
+  const currentIndex = useSharedValue(0);
+
+  useEffect(() => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const textArray = text.split('');
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setDisplayedText(prev => {
-                const randomText = Array(finalText.length)
-                    .fill(0)
-                    .map((_, i) =>
-                        prev[i] === finalText[i] ? finalText[i] : characters[Math.floor(Math.random() * characters.length)]
-                    )
-                    .join('');
-                return randomText;
-            });
-        }, 50);
+    const interval = setInterval(() => {
+      if (currentIndex.value < textArray.length) {
+        textArray[currentIndex.value] = characters.charAt(Math.floor(Math.random() * characters.length));
+        displayedText.value = textArray.join('');
+        currentIndex.value++;
+      } else {
+        clearInterval(interval);
+        displayedText.value = text;
+      }
+    }, duration / text.length);
 
-        animationProgress.value = withTiming(1, { duration }, () => {
-            clearInterval(interval);
-            setDisplayedText(finalText);
-        });
+    return () => clearInterval(interval);
+  }, [text, duration, currentIndex, displayedText]);
 
-        return () => clearInterval(interval);
-    }, [finalText, duration, animationProgress]);
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(1, { duration: 300 }),
+    };
+  });
 
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            opacity: animationProgress.value,
-        };
-    });
-
-    return (
-        <Animated.Text style={[styles.hackerText, animatedStyle]}>
-            {displayedText}
-        </Animated.Text>
-    );
+  return (
+    <View style={styles.container}>
+      <Animated.Text style={[styles.text, animatedStyle]}>
+        {displayedText.value}
+      </Animated.Text>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#000',
-    },
-    hackerText: {
-        fontSize: 24,
-        color: '#00FF00',
-        fontFamily: 'monospace',
-    },
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 18,
+    color: '#00e701',
+    fontFamily: 'monospace',
+  },
 });
-
 
 export default DecryptingAnimation;

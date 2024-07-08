@@ -1,4 +1,4 @@
-import { Redirect, SplashScreen, Stack} from 'expo-router';
+import { Redirect, SplashScreen, Stack, Tabs } from 'expo-router';
 import { useSession } from '../../context/useSession';
 import {
     useFonts,
@@ -7,13 +7,13 @@ import {
     Rajdhani_600SemiBold,
     Rajdhani_700Bold,
 } from '@expo-google-fonts/rajdhani';
-import { useChat } from '../../context/useChat';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
-    const { session, isLoading} = useSession() as { session: null, isLoading: true};
-    const {syncing} = useChat() as {syncing:boolean};
+    const { session, isLoading } = useSession() as { session: null, isLoading: true };
+    const syncing = false;
 
     let [fontsLoaded, fontError] = useFonts({
         Rajdhani_400Regular,
@@ -23,7 +23,7 @@ export default function AppLayout() {
     });
 
 
-    if(!syncing && !isLoading) {
+    if (!syncing && !isLoading) {
         SplashScreen.hideAsync();
     }
 
@@ -37,6 +37,6 @@ export default function AppLayout() {
         return <Redirect href="/auth" />;
     }
 
-    return <Stack screenOptions={{ headerShown: false, animation:"fade_from_bottom"}} />
 
+    return <Stack screenOptions={{ headerShown: false, animation: "fade_from_bottom" }} />
 }

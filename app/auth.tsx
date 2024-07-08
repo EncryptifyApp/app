@@ -11,13 +11,11 @@ import { Feather } from '@expo/vector-icons';
 import { setStorageItemAsync } from '../utils/useStorageState';
 import { router } from 'expo-router';
 import { generatePhrase } from '../utils/generatePhrase';
-import DecryptingAnimation from '../components/DecryptingAnimation';
 
 type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE' | 'INPUT_USERNAME';
 
 
 export default function Auth() {
-
   const { authenticateUser } = useSession() || {
     authenticateUser: async (sessionToken: string) => { }
   }
