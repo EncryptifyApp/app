@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
+import {Image, SafeAreaView, StatusBar, View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
 import Header from '../../components/Header';
-import { Image } from 'expo-image';
-import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
 import MenuItem from '../../components/MenuItem';
 import QRcode from 'react-native-qrcode-svg';
 import * as Clipboard from 'expo-clipboard';
 import { useSession } from '../../context/useSession';
 import { User } from '../../generated/graphql';
+import moment from 'moment';
 
 export default function Settings() {
-    const { user} = useSession() as { user: User | null};
+    const { user, subscriptionEndDate } = useSession() as { user: User | null, subscriptionEndDate: Date | null };
     const [isQrVisible, setIsQrVisible] = useState(false);
     const [isIdCopied, setIsIdCopied] = useState<boolean>(false);
 
@@ -27,9 +27,16 @@ export default function Settings() {
         await Clipboard.setStringAsync(user!.id!)
             .then(() => {
                 setIsIdCopied(true);
-        });
+            });
     };
 
+    if (!user) return null;
+
+
+    const now = moment();
+    const subscriptionDate = moment(subscriptionEndDate);
+    const isExpired = now.isAfter(subscriptionDate);
+    const formattedDate = subscriptionDate.format('DD MMM YYYY');
 
     return (
 
@@ -49,9 +56,20 @@ export default function Settings() {
                     {/* Menu profile */}
                     <View className='flex flex-row justify-between items-center py-5 px-5 border-b border-steel-gray'>
                         <View className='flex flex-row items-center space-x-4'>
-                            <Image source={user?.profileUrl || require('../../assets/images/logo.png')}
+                            <Image source={user.profileUrl || require('../../assets/images/logo.png')}
                                 className="w-16 h-16 rounded-full" />
-                            <Text className='font-primary-semibold text-white text-lg'>{user?.username}</Text>
+                            <View>
+                                <Text className='font-primary-semibold text-white text-lg'>{user.username}</Text>
+                                {/* subscription end date */}
+                                <Text className='font-primary-regular text-gray-300 text-sm'>
+                                    Valid until:
+                                    {isExpired ? (
+                                        <Text className='font-primary-semibold text-red-500'> Expired</Text>
+                                    ) : (
+                                        <Text className='font-primary-semibold'> {formattedDate}</Text>
+                                    )}
+                                </Text>
+                            </View>
                         </View>
 
                         <View className='flex flex-row space-x-5'>
@@ -67,16 +85,7 @@ export default function Settings() {
                         description="Manage your app settings"
                         icon={<Ionicons size={20} name='settings-outline' color="#474f54" />}
                     />
-                    <MenuItem
-                        title="Profile"
-                        description="View and edit your profile"
-                        icon={<MaterialIcons size={20} name='person-outline' color="#474f54" />}
-                    />
-                    <MenuItem
-                        title="Notifications"
-                        description="Manage notification settings"
-                        icon={<Ionicons size={20} name='notifications-outline' color="#474f54" />}
-                    />
+
                 </ScrollView>
             </SafeAreaView>
 
@@ -91,7 +100,7 @@ export default function Settings() {
                     <View className='flex-1 justify-end items-center'>
                         <TouchableWithoutFeedback>
                             <View className='py-4 px-20 bg-stormy-gray space-y-4 rounded-t-3xl'>
-                            <View className='bg-midnight-black w-14 h-2 rounded-full mx-auto mb-5'></View>
+                                <View className='bg-midnight-black w-14 h-2 rounded-full mx-auto mb-5'></View>
                                 {/* QR Code Details */}
                                 {/* <View className='flex flex-col items-center '>
                                     <Image source={require('../../assets/images/logo.png')} className='w-10 h-10 rounded-3xl' />

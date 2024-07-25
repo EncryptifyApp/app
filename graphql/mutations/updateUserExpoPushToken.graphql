@@ -1,8 +1,0 @@
-mutation UpdateUserExpoPushToken($userId: String!, $expoPushToken: String!) {
-  updateUserExpoPushToken(userId: $userId, expoPushToken: $expoPushToken) {
-    error {
-      ...FieldErrorFragment
-    }
-    success
-  }
-}

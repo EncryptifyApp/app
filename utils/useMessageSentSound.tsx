@@ -6,13 +6,11 @@ const useMessageSentSound = () => {
 
   async function playSound() {
     try {
-      console.log('Loading Sound');
       const { sound } = await Audio.Sound.createAsync(
         require('../assets/sounds/messageSent.mp3')
       );
       setSound(sound);
 
-      console.log('Playing Sound');
       await sound.playAsync();
     } catch (error) {
       console.error('Error playing sound:', error);
@@ -22,7 +20,6 @@ const useMessageSentSound = () => {
   useEffect(() => {
     return sound
       ? () => {
-          console.log('Unloading Sound');
           sound.unloadAsync();
         }
       : undefined;

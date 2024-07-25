@@ -1,4 +1,4 @@
-import { Redirect, SplashScreen, Stack, Tabs } from 'expo-router';
+import { Redirect, SplashScreen, Stack } from 'expo-router';
 import { useSession } from '../../context/useSession';
 import {
     useFonts,
@@ -7,13 +7,13 @@ import {
     Rajdhani_600SemiBold,
     Rajdhani_700Bold,
 } from '@expo-google-fonts/rajdhani';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import useChatStore from '../../context/useChatStore';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
     const { session, isLoading } = useSession() as { session: null, isLoading: true };
-    const syncing = false;
+    const {syncing} = useChatStore();
 
     let [fontsLoaded, fontError] = useFonts({
         Rajdhani_400Regular,

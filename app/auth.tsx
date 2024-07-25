@@ -247,6 +247,7 @@ export default function Auth() {
             loading={loading}
             size="large"
             weight="semibold"
+            rounded='rounded-md'
             disabled={licenseKey.length !== 17}
             onPress={FindLicense} />
             {/* <DecryptingAnimation finalText="Decrypting Text..." duration={3000} /> */}
@@ -313,6 +314,7 @@ export default function Auth() {
                   width="full"
                   size="large"
                   weight="semibold"
+                  rounded='rounded-md'
                   onPress={() => {
                     generatePhrase().then((phrase) => {
                       setPassphrase(phrase);
@@ -329,6 +331,7 @@ export default function Auth() {
                   loading={loading}
                   size="large"
                   weight="semibold"
+                  rounded='rounded-md'
                   disabled={passphrase.trim().split(/\s+/).length < 3}
                   onPress={generateKeys} />
               </View>
@@ -375,6 +378,7 @@ export default function Auth() {
                   loading={loading}
                   size="large"
                   weight="semibold"
+                  rounded='rounded-md'
                   onPress={DecryptPrivateKeys} />
               </View>
 
@@ -416,6 +420,7 @@ export default function Auth() {
                     loading={loading}
                     size="large"
                     weight="semibold"
+                    rounded='rounded-md'
                     disabled={username.length < 3}
                     onPress={Authenticate} />
                 </View>

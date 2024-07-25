@@ -1,5 +1,11 @@
 query AuthenticatedUser {
   authenticatedUser {
+    user {
      ...userFragment
+    }
+    subscriptionEndDate
+    error {
+      ...FieldErrorFragment
+    }
   }
 }

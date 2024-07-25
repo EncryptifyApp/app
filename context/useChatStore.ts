@@ -4,53 +4,79 @@ import ChatService from '../services/ChatService'
 import { sortChats } from '../utils/sortChats'
 import { decryptChats } from '../utils/decryptChats'
 import { decryptMessage } from '../utils/decryptMessage'
+import getChatById from '../operations/getChatById'
+import { decryptChat } from '../utils/decryptChat'
+import getChats from '../operations/getChats'
 
 type State = {
     chats: Chat[],
     syncing: boolean,
-    isConnected: boolean,
 }
 
 type Actions = {
     clearChats: () => void
-    setChats: (chats: Chat[]) => void
+    setChats: (chats: Chat[], user: User) => void
     setSyncing: (syncing: boolean) => void
-    setIsConnected: (isConnected: boolean) => void
-    updateChats: (message: Message, user: User) => Promise<void>
+    updateChats: (session: string, message: Message, user: User) => Promise<void>
     updateMessage: (messageTempId: string, id: string, status: MessageStatus, createdAt: Date) => Promise<void>
     addNewChat: (newChat: Chat) => Promise<void>
     getChat: (chatId: string) => Chat | undefined
-    fetchDataFromLocalStorage: (user: User) => Promise<void>
-    fetchDataFromServer: (user: User) => Promise<void>
+    fetchData: (user: User, isConnected: boolean, session: string) => Promise<void>
 }
 
 const useChatStore = create<State & Actions>((set, get) => ({
     chats: [],
-    syncing: false,
+    syncing: true,
     isConnected: false,
-    clearChats: () => set({ chats: [] }),
-    setChats: (chats) => set({ chats }),
+    clearChats: () => {
+        ChatService.clearChats();
+        set({ chats: [] })
+    },
     setSyncing: (syncing) => set({ syncing }),
-    setIsConnected: (isConnected) => set({ isConnected }),
-    updateChats: async (newMessage: Message, user: User) => {
+    setChats: async (chats, user) => {
+        try {
+            set({ syncing: true });
+            console.log("fetching data from server");
+            if (chats) {
+                await ChatService.storeChatsLocally(chats);
+                const decryptedChats = await decryptChats(chats, user!);
+                set({ chats: sortChats(decryptedChats!) });
+            }
+        } catch (error) {
+            console.error('Error fetching messages from the server:', error);
+        } finally {
+            set({ syncing: false });
+        }
+    },
+    updateChats: async (session: string, newMessage: Message, user: User) => {
         const { chats } = get();
         const updatedChats = [...chats];
         const chatIndex = updatedChats.findIndex((chat) => chat.id === newMessage.chat!.id);
-
         if (chatIndex !== -1) {
-            const chat = updatedChats[chatIndex];
-            const toUser = chat.members!.find((member) => member.id !== user!.id);
+            const existingChat = updatedChats[chatIndex];
+            const toUser = existingChat.members!.find((member) => member.id !== user!.id);
             if (toUser) {
                 const decryptedMessage = await decryptMessage(newMessage, toUser);
-                chat.messages!.push(decryptedMessage!);
+                //add message to top of the list
+                existingChat.messages = [decryptedMessage as Message, ...existingChat.messages as Message[]];
                 updatedChats.splice(chatIndex, 1);
-                updatedChats.unshift(chat);
+                updatedChats.unshift(existingChat);
+                set({ chats: updatedChats });
             }
         } else {
-            // Handle new chat creation if needed
+            //if the chat doesn't exist locally, 
+            //we're going to fetch it from the server
+            const chat = await getChatById(session, newMessage.chat!.id);
+            if (chat) {
+                if (chats.find((c) => c.id === chat.id)) {
+                    return;
+                }
+                const decryptedChat = await decryptChat(chat, user!);
+                set({ chats: [decryptedChat!, ...chats] });
+                await ChatService.addChatToStorage(chat);
+            }
         }
 
-        set({ chats: sortChats(updatedChats) });
         await ChatService.addMessageToChatStorage(newMessage);
     },
     updateMessage: async (messageTempId, id, status, createdAt) => {
@@ -64,7 +90,7 @@ const useChatStore = create<State & Actions>((set, get) => ({
                 chat.messages![messageIndex].id = id;
                 chat.messages![messageIndex].status = status;
                 chat.messages![messageIndex].createdAt = createdAt;
-                set({ chats: updatedChats });
+                set({ chats: sortChats(updatedChats) });
                 await ChatService.updateMessageStatus(messageTempId, id, createdAt);
             }
         }
@@ -79,31 +105,32 @@ const useChatStore = create<State & Actions>((set, get) => ({
         const { chats } = get();
         return chats.find((chat) => chat.id === chatId);
     },
-    fetchDataFromLocalStorage: async (user) => {
+    fetchData: async (user, isConnected, session) => {
+        console.log("fetching data from local storage");
         try {
             const localChats = await ChatService.getLocalChats();
             const decryptedChats = await decryptChats(localChats, user);
             set({ chats: sortChats(decryptedChats!) });
+
+            if (isConnected) {
+                console.log("fetching data from server");
+                try {
+                    const chats = await getChats(session);
+                    if (chats) {
+                        const decryptedChats = await decryptChats(chats, user);
+                        set({ chats: sortChats(decryptedChats!) });
+                        set({ syncing: false });
+                    }
+                } catch (error) {
+                    console.error('Error fetching messages from the server:', error);
+                }
+            } else {
+                set({ syncing: false });
+            }
         } catch (error) {
             console.error('Error fetching messages from localstorage:', error);
         }
     },
-    fetchDataFromServer: async (user) => {
-        const { setSyncing, chats } = get();
-        try {
-            setSyncing(true);
-            if (data?.chats) {
-                const serverChats = data.chats;
-                await ChatService.storeChatsLocally(serverChats);
-                const decryptedChats = await decryptChats(serverChats, user);
-                set({ chats: sortChats(decryptedChats) });
-            }
-        } catch (error) {
-            console.error('Error fetching messages from the server:', error);
-        } finally {
-            setSyncing(false);
-        }
-    }
 }))
 
 export default useChatStore;

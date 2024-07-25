@@ -5,10 +5,11 @@ import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useRouter } from 'expo-router';
 import Header from '../../components/Header';
 import Button from '../../components/Button';
+import useChatStore from '../../context/useChatStore';
 
 export default function AddContact() {
     const router = useRouter();
-    // const { getChat, addNewChat } = useChatStore();
+    const { getChat, addNewChat } = useChatStore();
 
     // User to be scanned
     const [id, setId] = useState<string>('');
@@ -39,34 +40,34 @@ export default function AddContact() {
         }
     };
 
-    // useEffect(() => {
-    //     const handleQueryResult = () => {
-    //         if (result.data) {
-    //             if (result.data.getChatbyUserId === null) {
-    //                 Alert.alert("User not found", "The user you are trying to reach is not found. Please try again", [
-    //                     {
-    //                         text: "OK",
-    //                         onPress: () => setScanned(false)
-    //                     }
-    //                 ]);
-    //                 setExecuteQuery(false); // Disable query execution
-    //                 return;
-    //             }
-    //             // Get the chat
-    //             const chatId = result.data.getChatbyUserId?.id;
-    //             const chat = getChat(chatId!);
-    //             if (chat) {
-    //                 // Navigate the user to the chat screen
-    //                 router.replace({ pathname: "/chat", params: { chatId: chatId } });
-    //             } else {
-    //                 addNewChat(result.data.getChatbyUserId!);
-    //                 router.replace({ pathname: "/chat", params: { chatId: chatId } });
-    //             }
-    //             setExecuteQuery(false); // Disable query execution
-    //         }
-    //     };
-    //     handleQueryResult();
-    // }, [result]);
+    useEffect(() => {
+        const handleQueryResult = () => {
+            if (result.data) {
+                if (result.data.getChatbyUserId === null) {
+                    Alert.alert("User not found", "The user you are trying to reach is not found. Please try again", [
+                        {
+                            text: "OK",
+                            onPress: () => setScanned(false)
+                        }
+                    ]);
+                    setExecuteQuery(false); // Disable query execution
+                    return;
+                }
+                // Get the chat
+                const chatId = result.data.getChatbyUserId?.id;
+                const chat = getChat(chatId!);
+                if (chat) {
+                    // Navigate the user to the chat screen
+                    router.replace({ pathname: "/chat", params: { chatId: chatId } });
+                } else {
+                    addNewChat(result.data.getChatbyUserId!);
+                    router.replace({ pathname: "/chat", params: { chatId: chatId } });
+                }
+                setExecuteQuery(false); // Disable query execution
+            }
+        };
+        handleQueryResult();
+    }, [result]);
 
     const handleAddById = () => {
         if (id.trim()) {
@@ -116,7 +117,14 @@ export default function AddContact() {
                             value={id}
                             onChangeText={setId}
                         />
-                        <Button text='Add' bgColor='primary' weight='semibold' size={'large'} width={'min'} onPress={handleAddById}
+                        <Button 
+                        text='Add' 
+                        bgColor='primary'
+                         weight='semibold' 
+                         size={'large'} 
+                         width={'min'} 
+                         rounded='rounded-md'
+                         onPress={handleAddById}
                         />
                     </View>
                 ) : (

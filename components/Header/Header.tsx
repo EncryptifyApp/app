@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Menu } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Loading from '../Loading';
 import { router } from 'expo-router';
 import { useSession } from '../../context/useSession';
+import { styles } from '../../styles/HeaderMenuStyle';
 
 interface Props {
     syncing?: boolean;
@@ -79,22 +80,5 @@ const Header = ({ syncing, title }: Props) => {
         </View>
     );
 };
-const styles = StyleSheet.create({
-    Menu: {
-        backgroundColor: '#191b1f',
-        padding: 0
-    },
-    MenuItem: {
-        height: 50,
-        backgroundColor: '#191b1f',
-    },
-    MenuTitle: {
-        fontFamily: 'Rajdhani_600SemiBold',
-        color: 'white',
-        fontSize: 16,
-    }
-
-
-});
 
 export default Header;

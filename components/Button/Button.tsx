@@ -5,14 +5,15 @@ interface Props {
   text?: string;
   textColor?: string;
   bgColor?: string;
-  size: "small" | "medium" | "large";
+  size: "small" | "medium" | "large" | "xlarge";
   width: "full" | "half" | "most" | "min" | "xmin";
   weight?: "regular" | "normal" | "bold" | "semibold";
+  rounded: "rounded-none" | "rounded-md" | "rounded-lg" | "rounded-xl" | "rounded-2xl" | "rounded-3xl" | "rounded-full";
   icon?: any;
   loading?: boolean;
   disabled?: boolean;
   onPress: any;
-  outline?: boolean; // Add the outline prop
+  outline?: boolean;
 }
 
 const backgroundColors = {
@@ -35,12 +36,13 @@ const sizes = {
   small: "px-0.5 py-0.5",
   medium: "px-1 py-1",
   large: "px-2 py-2",
+  xlarge: "px-3 py-3",
 };
 
 const widths = {
   full: "w-full",
   half: "w-1/2",
-  most: "w-full lg:w-2/3",
+  most: "w-3/4",
   min: "w-1/3",
   xmin: "w-1/12",
 };
@@ -62,6 +64,7 @@ export default function Button({
   bgColor,
   width,
   weight,
+  rounded,
   size,
   loading,
   icon,
@@ -74,6 +77,7 @@ export default function Button({
   let widthClasses = widths[width];
   let sizeClasses = sizes[size];
   let weightClasses = weights[weight as keyof typeof weights];
+
   let ActivityIndicatorColor = textColor == "primary" ? "#000000" : "#ffffff";
 
   return (
@@ -86,13 +90,14 @@ export default function Button({
       }}
       className={getClassName(
         'flex flex-row items-center justify-center',
-        'border-transparent rounded-md shadow-sm capitalize',
+        'shadow-sm capitalize',
         'text-center transition duration-800 ease-in-out transform',
         `${bgColorClasses}`,
         `${widthClasses}`,
         `${sizeClasses}`,
         `${textColorClasses}`,
         `${weightClasses}`,
+        `${rounded}`,
         outline ? 'bg-transparent border-2 border-primary text-primary' : 'bg-opacity-100',
         disabled ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'
       )}

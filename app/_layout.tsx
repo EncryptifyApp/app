@@ -7,6 +7,7 @@ import { httpUrl, wsUrl } from '../config';
 import NetInfo from '@react-native-community/netinfo';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SessionProvider } from '../context/useSession';
+import { ConnectionProvider } from '../context/useConnection';
 const Root = () => {
   const [[, session]] = useStorageState('session');
   const [isConnected, setIsConnected] = useState(false);
@@ -133,11 +134,13 @@ const Root = () => {
 
   return (
     <Provider value={client}>
-      <SessionProvider>
-        <PaperProvider>
-          <Slot />
-        </PaperProvider>
-      </SessionProvider>
+      <ConnectionProvider>
+        <SessionProvider>
+          <PaperProvider>
+            <Slot />
+          </PaperProvider>
+        </SessionProvider>
+      </ConnectionProvider>
     </Provider>
   );
 };
