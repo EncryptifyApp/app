@@ -1,9 +1,9 @@
 import { FlatList, SafeAreaView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import { User, useNewMessageSubscription } from '../../generated/graphql';
+import { User, useNewMessageSubscription } from '../../__generated__/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Chat as ChatType } from '../../generated/graphql';
+import { Chat as ChatType } from '../../__generated__/graphql';
 import { useRouter } from 'expo-router';
 import Header from "../../components/Header"
 import { useSession } from '../../context/useSession';

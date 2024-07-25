@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Chat, Message, MessageStatus } from '../generated/graphql';
+import { Chat, Message, MessageStatus } from '../__generated__/graphql';
 
 class ChatService {
 

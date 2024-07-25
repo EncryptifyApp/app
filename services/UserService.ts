@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { User } from "../generated/graphql";
+import { User } from "../__generated__/graphql";
 
 
 class UserService {
@@ -51,6 +51,7 @@ class UserService {
     async clearLocalUser() {
         try {
             await AsyncStorage.removeItem(this.USER_KEY);
+            await AsyncStorage.removeItem(this.SUBSCRIPTION_END_DATE_KEY);
         } catch (error) {
             console.error('Error clearing user locally:', error);
             throw error;

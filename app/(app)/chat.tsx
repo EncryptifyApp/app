@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Modal, Toucha
 import Button from '../../components/Button';
 import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { User, Message, MessageStatus } from '../../generated/graphql';
+import { User, Message, MessageStatus } from '../../__generated__/graphql';
 import { encryptMessage } from '../../utils/encryptMessage';
 import Widget from '../../components/Widget';
 import MessageReceived from '../../components/MessageReceived';

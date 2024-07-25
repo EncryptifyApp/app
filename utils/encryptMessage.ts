@@ -1,7 +1,7 @@
 import { encrypt, getMySecretKey } from "./crypto";
 import { box } from "tweetnacl";
 import { decode as decodeBase64 } from '@stablelib/base64';
-import { User } from "../generated/graphql";
+import { User } from "../__generated__/graphql";
 
 export const encryptMessage = async (message: string, toUser: User) => {
     // encrypt message

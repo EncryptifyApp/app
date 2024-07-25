@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import moment from 'moment';
-import { Message } from '../../generated/graphql';
+import { Message } from '../../__generated__/graphql';
 import * as Clipboard from 'expo-clipboard';
 import { Menu } from 'react-native-paper';
 import { styles } from '../../styles/MessageMenuStyles';

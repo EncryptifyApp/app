@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import { View, Text, TouchableOpacity, Image } from 'react-native'
-import { Chat as ChatType, User } from '../../generated/graphql'
+import { Chat as ChatType, User } from '../../__generated__/graphql'
 import { router } from 'expo-router'
 import moment from 'moment';
 import { useSession } from '../../context/useSession';

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Message, MessageStatus } from '../../generated/graphql';
+import { Message, MessageStatus } from '../../__generated__/graphql';
 import * as Clipboard from 'expo-clipboard';
 import { Menu } from 'react-native-paper';
 import { styles } from '../../styles/MessageMenuStyles';

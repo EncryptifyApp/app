@@ -44,6 +44,8 @@ export const decrypt = (secretOrSharedKey: Uint8Array, messageWithNonce: string,
     messageWithNonce.length
   );
 
+  
+
   const decrypted = key
     ? box.open(message, nonce, key, secretOrSharedKey)
     : box.open.after(message, nonce, secretOrSharedKey);

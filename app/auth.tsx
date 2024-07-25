@@ -3,12 +3,12 @@ import * as Clipboard from 'expo-clipboard';
 import { useSession } from '../context/useSession';
 import Button from '../components/Button';
 import React, { useEffect, useState } from 'react';
-import { useAuthenticateMutation, useFindAccountQuery } from '../generated/graphql';
+import { useAuthenticateMutation, useFindAccountQuery } from '../__generated__/graphql';
 import { PRIVATE_KEY } from '../constants';
 import { decryptPrivateKey, encryptPrivateKey, generateKeyPair } from '../utils/crypto';
 import { encode } from '@stablelib/base64';
 import { Feather } from '@expo/vector-icons';
-import { setStorageItemAsync } from '../utils/useStorageState';
+import { setStorageItemAsync, useStorageState } from '../utils/useStorageState';
 import { router } from 'expo-router';
 import { generatePhrase } from '../utils/generatePhrase';
 
@@ -16,9 +16,19 @@ type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE
 
 
 export default function Auth() {
+  const [[isLoading, session]] = useStorageState('session');
+
+  useEffect(() => {
+    if (!isLoading && session) {
+      router.replace('/');
+    }
+  }, [isLoading, session]);
+
+
   const { authenticateUser } = useSession() || {
     authenticateUser: async (sessionToken: string) => { }
   }
+
   const [step, setStep] = useState<AuthStep>('INPUT_ACCOUNT_NUMBER');
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -37,6 +47,7 @@ export default function Auth() {
   const [encryptedPrivateKey, setEncryptedPrivateKey] = useState<string>('');
 
   const [, authenticate] = useAuthenticateMutation();
+
 
 
   const formatLicenseKey = (text: string) => {
@@ -62,7 +73,7 @@ export default function Auth() {
 
 
   const FindLicense = async () => {
-    
+
     if (licenseKey === '' || licenseKey.length != 17) {
       Alert.alert('Not a valid number', 'Enter a valid number', [
         {
@@ -77,7 +88,7 @@ export default function Auth() {
       setLoading(true);
       reexecuteQuery();
       const { data } = result;
-      
+
       if (data?.findAccount.error) {
         Alert.alert('Error', data.findAccount.error.message, [
           {
@@ -250,7 +261,7 @@ export default function Auth() {
             rounded='rounded-md'
             disabled={licenseKey.length !== 17}
             onPress={FindLicense} />
-            {/* <DecryptingAnimation finalText="Decrypting Text..." duration={3000} /> */}
+          {/* <DecryptingAnimation finalText="Decrypting Text..." duration={3000} /> */}
           <Text className="text-white text-base font-primary-medium text-center mt-8">If you do not have a license key, you can acquire one through our official website.</Text>
         </>
 

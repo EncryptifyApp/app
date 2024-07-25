@@ -7,7 +7,7 @@ import MenuItem from '../../components/MenuItem';
 import QRcode from 'react-native-qrcode-svg';
 import * as Clipboard from 'expo-clipboard';
 import { useSession } from '../../context/useSession';
-import { User } from '../../generated/graphql';
+import { User } from '../../__generated__/graphql';
 import moment from 'moment';
 
 export default function Settings() {

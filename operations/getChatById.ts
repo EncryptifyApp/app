@@ -1,7 +1,7 @@
 // services/getChatById.ts
 import { createClient, gql } from 'urql';
 import { httpUrl } from '../config';
-import { MessageStatus } from '../generated/graphql';
+import { MessageStatus } from '../__generated__/graphql';
 
 // Define the types for the query response and variables
 interface GetChatByIdResponse {

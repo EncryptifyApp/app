@@ -1,4 +1,4 @@
-import { Chat } from "../generated/graphql";
+import { Chat } from "../__generated__/graphql";
 
 export const sortChats = (chats: Chat[]): Chat[] => {
     if (!chats) return [];

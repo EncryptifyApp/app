@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, SafeAreaView, StatusBar, Alert, TextInput, TouchableOpacity } from 'react-native';
-import { useGetChatbyUserIdQuery } from '../../generated/graphql';
+import { useGetChatbyUserIdQuery } from '../../__generated__/graphql';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useRouter } from 'expo-router';
 import Header from '../../components/Header';

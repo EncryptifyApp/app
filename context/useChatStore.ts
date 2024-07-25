@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Chat, Message, MessageStatus, User } from '../generated/graphql'
+import { Chat, Message, MessageStatus, User } from '../__generated__/graphql'
 import ChatService from '../services/ChatService'
 import { sortChats } from '../utils/sortChats'
 import { decryptChats } from '../utils/decryptChats'
@@ -123,12 +123,14 @@ const useChatStore = create<State & Actions>((set, get) => ({
                     }
                 } catch (error) {
                     console.error('Error fetching messages from the server:', error);
+                    throw error;
                 }
             } else {
                 set({ syncing: false });
             }
         } catch (error) {
-            console.error('Error fetching messages from localstorage:', error);
+            console.error('Error fetching messages from local storage:', error);
+            throw error;
         }
     },
 }))

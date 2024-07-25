@@ -1,7 +1,7 @@
 // services/getChatById.ts
 import { createClient, gql } from 'urql';
 import { httpUrl } from '../config';
-import { MessageStatus } from '../generated/graphql';
+import { MessageStatus } from '../__generated__/graphql';
 
 // Define the types for the query response and variables
 interface GetChatsResponse {
@@ -55,27 +55,21 @@ const GET_CHATS = gql`
   }
 `;
 
-export const getChats = async (session:string) => {
-   // Create a client instance
-   const client = createClient({
+export const getChats = async (session: string) => {
+  const client = createClient({
     url: httpUrl,
-    fetchOptions: () => {
-      return {
-        headers: { authorization: session ? `${session}` : '' },
-      };
-    },
+    fetchOptions: () => ({
+      headers: { authorization: session ? `${session}` : '' },
+    }),
   });
 
-
-  const response = await client.query<GetChatsResponse>(GET_CHATS
-  ).toPromise();
+  const response = await client.query<GetChatsResponse>(GET_CHATS).toPromise();
 
   if (response.error) {
-    console.error('An error occurred while fetching chats:', response.error);
-    return null;
+    throw new Error('An error occurred while fetching chats');
   }
 
   return response.data?.chats;
-}
+};
 
 export default getChats;

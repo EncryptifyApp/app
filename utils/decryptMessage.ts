@@ -1,4 +1,4 @@
-import { Message, User } from "../generated/graphql";
+import { Message, User } from "../__generated__/graphql";
 import { decrypt, getMySecretKey } from "./crypto";
 import { decode as decodeBase64 } from '@stablelib/base64';
 import { box } from "tweetnacl";
@@ -20,6 +20,9 @@ export const decryptMessage = async (message: Message,toUser:User) => {
     const userPublicKey = decodeBase64(userPublicKeyBase64);
 
     const sharedKey = box.before(userPublicKey, privateKey);
+
+    console.log("SHARED KEY", sharedKey);
+    console.log("MESSAGE", message.content);
 
     const decryptedMessage = decrypt(sharedKey, message.content);
 

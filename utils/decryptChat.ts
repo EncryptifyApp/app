@@ -1,7 +1,7 @@
 import { decrypt, getMySecretKey } from "./crypto";
 import { decode as decodeBase64 } from '@stablelib/base64';
 import { box } from "tweetnacl";
-import { Chat, User } from "../generated/graphql";
+import { Chat, User } from "../__generated__/graphql";
 
 export const decryptChat = async (chat: Chat, user: User) => {
     if (!user || !chat) return null;
