@@ -8,7 +8,7 @@ interface ConnectionContextProps {
 
 const ConnectionContext = createContext<ConnectionContextProps | undefined>(undefined);
 
-export const ConnectionProvider: React.FC = (props: React.PropsWithChildren) => {
+export const ConnectionProvider = (props: React.PropsWithChildren) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {

@@ -21,9 +21,6 @@ export const decryptMessage = async (message: Message,toUser:User) => {
 
     const sharedKey = box.before(userPublicKey, privateKey);
 
-    console.log("SHARED KEY", sharedKey);
-    console.log("MESSAGE", message.content);
-
     const decryptedMessage = decrypt(sharedKey, message.content);
 
     return { ...message, content: decryptedMessage.message };

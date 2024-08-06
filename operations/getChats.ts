@@ -66,7 +66,7 @@ export const getChats = async (session: string) => {
   const response = await client.query<GetChatsResponse>(GET_CHATS).toPromise();
 
   if (response.error) {
-    throw new Error('An error occurred while fetching chats');
+    throw new Error('An error occurred while fetching chats', response.error);
   }
 
   return response.data?.chats;

@@ -1,10 +1,10 @@
 
-import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Text} from 'react-native';
 
 const Loading = () => {
-    return <View className='bg-primary mx-auto rounded-full p-1'>
-        <ActivityIndicator size="small" color="black" />
+    return <View className='flex flex-row bg-primary mx-auto rounded-lg items-center space-x-2 px-2 py-1'>
+        <ActivityIndicator size={16} color="black" />
+        <Text className='font-primary-semibold text-midnight-black'>Connecting...</Text>
     </View>;
 };
 

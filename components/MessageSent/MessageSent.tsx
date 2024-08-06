@@ -27,6 +27,7 @@ export default function MessageSent({ message }: Props) {
         await Clipboard.setStringAsync(content);
         closeMenu();
     };
+    
 
     return (
         <View>
@@ -34,7 +35,7 @@ export default function MessageSent({ message }: Props) {
                 onLongPress={handleLongPress}
                 className="justify-end items-end mb-2"
             >
-                <View className="bg-primary rounded-md p-2 max-w-xs">
+                <View className="space-x-4 bg-primary rounded-xl p-2 max-w-xs">
                     <Text className="text-black font-primary-semibold text-base">
                         {message.content}
                     </Text>

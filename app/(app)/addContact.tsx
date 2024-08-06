@@ -88,7 +88,7 @@ export default function AddContact() {
                 />
 
                 {/* Header */}
-                    <Header title="Add Contact" />
+                    <Header title="Add Contact" backButtonPath={"/"}/>
 
                 {/* Tabs */}
                 <View className="flex-row justify-around">

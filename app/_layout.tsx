@@ -2,16 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { Provider, createClient, fetchExchange, cacheExchange, subscriptionExchange } from 'urql';
 import { createClient as createWSClient } from 'graphql-ws';
 import { Slot } from 'expo-router';
-import { useStorageState } from '../utils/useStorageState';
 import { httpUrl, wsUrl } from '../config';
 import NetInfo from '@react-native-community/netinfo';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SessionProvider } from '../context/useSession';
 import { ConnectionProvider } from '../context/useConnection';
+import useChatStore from '../context/useChatStore';
+import { usePushNotifications } from '../hooks/usePushNotifications';
+
+
 const Root = () => {
-  const [[, session]] = useStorageState('session');
+  //NOTIFICATIONS
+  usePushNotifications();
+  
+  const { session } = useChatStore();
   const [isConnected, setIsConnected] = useState(false);
   const [wsClient, setWsClient] = useState<any>(null);
+
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
@@ -23,9 +30,11 @@ const Root = () => {
     };
   }, []);
 
+
+
+  //WEB SOCKET
   useEffect(() => {
     let client: any;
-
     const createWebSocketClient = (session: string) => createWSClient({
       url: wsUrl,
       connectionParams: {
@@ -54,6 +63,7 @@ const Root = () => {
     };
 
     initWebSocketClient();
+
 
     return () => {
       if (client) {
@@ -100,7 +110,7 @@ const Root = () => {
     };
   }, [session, isConnected]);
 
-  // Create HTTP client
+  //HTTP client
   const client = createClient({
     url: httpUrl,
     fetchOptions: () => {
@@ -131,6 +141,7 @@ const Root = () => {
       }),
     ],
   });
+
 
   return (
     <Provider value={client}>

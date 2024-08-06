@@ -33,7 +33,7 @@ const MessageReceived: React.FC<Props> = ({ message }) => {
                 onLongPress={handleLongPress}
                 className="justify-start items-start mb-2"
             >
-                <View className="bg-steel-gray rounded-md p-2 max-w-xs">
+                <View className="bg-steel-gray rounded-xl p-2 max-w-xs">
                     <Text className="text-white font-primary-semibold text-base">
                         {message.content}
                     </Text>
@@ -50,7 +50,7 @@ const MessageReceived: React.FC<Props> = ({ message }) => {
                     contentStyle={styles.Menu}
                     visible={visible}
                     onDismiss={closeMenu}
-                    anchor={{ x: anchor.x, y: anchor.y + 30 }}
+                    anchor={{ x: anchor.x, y: anchor.y + 25 }}
                 >
                     <Menu.Item
                     style={styles.MenuItem}

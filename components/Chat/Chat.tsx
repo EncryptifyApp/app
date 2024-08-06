@@ -6,36 +6,53 @@ import { router } from 'expo-router'
 import moment from 'moment';
 import { useSession } from '../../context/useSession';
 import useChatStore from '../../context/useChatStore';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
     chat: ChatType,
-    chatIdToUpdated: string | null
 }
 
-export default function Chat({ chat, chatIdToUpdated }: Props) {
+export default function Chat({ chat }: Props) {
     const { user } = useSession() as { user: User | null };
     const [lastMessage, setLastMessage] = useState<string>('');
     const toUser = chat.members!.find((member) => member.id !== user!.id);
-    const { chats } = useChatStore();
+    const { chats, chatIdToUpdated, setChatIdToUpdated } = useChatStore();
 
     // TODO: this is temporary
     // we should remove this when we implement read receipts
     const [isNewMessage, setIsNewMessage] = useState<boolean>(false);
 
+    const [isMyMessage, setIsMyMessage] = useState<boolean>(false);
 
 
     useEffect(() => {
         if (chat.messages!.length != 0) {
             setLastMessage(chat.messages![0].content);
+            if(chat.messages![0].sender.id == user!.id) {
+                setIsMyMessage(true)
+            } else {
+                setIsMyMessage(false)
+            }
         }
+        
     }, [chat]);
 
     useEffect(() => {
         if (chatIdToUpdated === chat.id && chat.messages!.length != 0) {
-            setIsNewMessage(true);
             setLastMessage(chat.messages![0].content);
+            if (chat.messages![0].sender.id !== user?.id) {
+                setIsNewMessage(true);
+            }
+        }
+
+        if(chat.messages!.length != 0 && chat.messages![0].sender.id == user!.id) {
+            setIsMyMessage(true)
+        } else {
+            setIsMyMessage(false)
         }
     }, [chatIdToUpdated, chat, chats]);
+
+
 
     if (!chat) return;
 
@@ -68,6 +85,7 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
     return (
         <TouchableOpacity onPress={() => {
             setIsNewMessage(false);
+            setChatIdToUpdated(null);
             router.push({ pathname: "/chat", params: { chatId: chat.id } });
         }}>
             <View className='flex flex-row justify-between bg-midnight-black py-2 px-3'>
@@ -78,13 +96,17 @@ export default function Chat({ chat, chatIdToUpdated }: Props) {
                     />
                     <View className='flex-1'>
                         <Text className='text-white font-primary-bold text-base'>{toUser!.username}</Text>
-                        <Text
-                            numberOfLines={2}
-                            ellipsizeMode='tail'
-                            className={`${isNewMessage ? "font-primary-semibold" : "font-primary-regular"} text-gray-400 text-base overflow-hidden whitespace-nowrap overflow-ellipsis`}
-                        >
-                            {lastMessage}
-                        </Text>
+                        <View className='flex flex-row items-start space-x-1'>
+                            {isMyMessage && <Ionicons name="checkmark" size={18} color={'gray'} />}
+                            <Text
+                                numberOfLines={2}
+                                ellipsizeMode='tail'
+                                className={`${isNewMessage ? "font-primary-semibold" : "font-primary-regular"} text-gray-400 text-base overflow-hidden whitespace-nowrap overflow-ellipsis`}
+                            >
+                                {lastMessage}
+                            </Text>
+                        </View>
+
                     </View>
                 </View>
 

@@ -20,6 +20,12 @@ export async function setStorageItemAsync(key: string, value: string | null) {
     }
 }
 
+
+export async function clearStorageItem(key: string) {
+    await SecureStore.deleteItemAsync(key);
+}
+
+
 export function useStorageState(key: string): UseStateHook<string> {
     // Public
     const [state, setState] = useAsyncState<string>();

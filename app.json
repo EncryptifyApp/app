@@ -1,38 +1,52 @@
 {
   "expo": {
     "name": "Encryptify",
-    "slug": "encryptify",
+    "slug": "encryptifyapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/images/adaptive-icon.png",
+    "userInterfaceStyle": "dark",
     "scheme": "your-app-scheme",
+    "projectId": "d7e292be-b3e9-4c2e-9ae7-46dec613294a",
     "splash": {
       "image": "./assets/images/encryptifySplash.png",
-      "resizeMode": "fill",
+      "resizeMode": "cover",
       "backgroundColor": "#000000"
     },
+
+    
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "bundleIdentifier": "com.app.encryptify",
+      "bundleIdentifier": "com.encryptify.app",
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access camera.",
-        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone"
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone",
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ]
       }
     },
     "android": {
-      "package": "com.app.encryptify",
+      "package": "com.encryptify.app",
       "versionCode": 1,
+      "googleServicesFile": "./android/app/google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#00e701"
       },
       "permissions": [
         "android.permission.CAMERA"
-      ]
+      ],
+      "notification": {
+        "icon": "./assets/images/adaptive-icon.png",
+        "color": "#00e701",
+        "androidMode": "default",
+        "androidCollapsedTitle": "New messages"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -51,8 +65,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "3d6759e3-64a5-4121-a0d7-74cf77108d3b"
+        "projectId": "d7e292be-b3e9-4c2e-9ae7-46dec613294a"
       }
-    }
+    },
+    "owner": "riadjoul"
   }
 }

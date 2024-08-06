@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 18,
-    color: '#00e701',
+    color: '#ffffff',
     fontFamily: 'monospace',
   },
 });

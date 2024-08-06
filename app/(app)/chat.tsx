@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Modal, TouchableWithoutFeedback } from 'react-native';
 import Button from '../../components/Button';
-import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { User, Message, MessageStatus } from '../../__generated__/graphql';
 import { encryptMessage } from '../../utils/encryptMessage';
@@ -13,16 +13,21 @@ import { useSession } from '../../context/useSession';
 import useChatStore from '../../context/useChatStore';
 import { sendMessage } from '../../operations/sendMessage';
 import { useConnection } from '../../context/useConnection';
-import useMessageSentSound from '../../utils/useMessageSentSound';
+import useMessageSentSound from '../../hooks/useMessageSentSound';
 import QRcode from 'react-native-qrcode-svg';
 import * as Clipboard from 'expo-clipboard';
+import moment from 'moment';
+import DateSplitter from '../../components/DateSplitter';
+import NoteService from '../../services/NoteService';
+import { ScrollView } from 'react-native-gesture-handler';
+
 
 export default function ChatScreen() {
     const flatListRef = useRef<FlatList>(null);
     const { isConnected } = useConnection();
     const { user, session } = useSession() as { user: User | null, session: string | null };
     //chat
-    const { chats, updateChats, updateMessage } = useChatStore();
+    const { chats, updateChats, updateMessage, setChatIdToUpdated } = useChatStore();
     const data = useLocalSearchParams();
     const chatId = data["chatId"] as string;
     const [chat] = useState(chats!.find((c) => c.id === chatId));
@@ -41,6 +46,7 @@ export default function ChatScreen() {
             setMessages(chat.messages!);
         }
     }, [chats]);
+
 
 
 
@@ -63,12 +69,14 @@ export default function ChatScreen() {
                 content: encryptedContent as string,
             };
 
+            // Clear message input
+            setMessage('');
 
             // Update context with new message
             await updateChats(session!, encryptedMessage, user!);
 
-            // Clear message input
-            setMessage('');
+            //update chat id to updated
+            setChatIdToUpdated(chatId);
 
             if (isConnected) {
                 const message = await sendMessage(session!, toUser.id, encryptedContent!);
@@ -93,28 +101,44 @@ export default function ChatScreen() {
 
 
     const renderMessage = ({ item, index }: { item: Message, index: number }) => {
-        // const isDifferentDay = index === 0 || moment(item.createdAt).format('LL') !== moment(messages[0].createdAt).format('LL');
+        // Check if the current message is sent on a different day than the previous one
+        const isDifferentDay = () => {
+            if (index === 0) return false;
+            return moment(item.createdAt).format('LL') !== moment(messages[index - 1].createdAt).format('LL');
+        }
+
+        // Check if the message is the first one and if the day is different from today
+        const isFirstMessageDifferentDay = () => {
+            return index === messages.length - 1;
+        };
 
         return (
             <View key={item.id}>
-                {/* {isDifferentDay && (
-                    <DateSplitter date={moment(item.createdAt).format('LL')} />
-                )} */}
+                {
+                    // if it the first message and the day is different than today
+                    isFirstMessageDifferentDay() && (
+                        <DateSplitter date={moment(item.createdAt).format('LL')} />
+                    )
+                }
                 {item.sender?.id === user?.id ? (
                     <MessageSent message={item} />
                 ) : (
                     <MessageReceived message={item} />
                 )}
-                {/* typing animation */}
-                {/* {index === 0 && (
-                    //TODO: add typing... feature
-                    <TypingAnimation />
-                )} */}
+                {isDifferentDay() && (
+                    <DateSplitter date={moment(messages[index - 1].createdAt).format('LL')} />
+                )}
+
+                {/* {
+                    // Typing animation
+                    index === 0 && <TypingAnimation />
+                } */}
             </View>
         );
     };
 
-    if (!chat) return null;
+
+    if (!chat) return <View className="flex-1 bg-midnight-black"></View>;
 
     const profileSource = toUser?.profileUrl
         ? { uri: toUser.profileUrl }
@@ -137,6 +161,41 @@ export default function ChatScreen() {
                 setIsIdCopied(true);
             });
     };
+
+
+    const [note, setNote] = useState<string>('');
+    const saveNote = async () => {
+        try {
+            await NoteService.saveNote(chatId, note);
+        } catch (error) {
+            console.error('Error saving note:', error);
+        }
+    };
+
+    useEffect(() => {
+        const getNote = async () => {
+            try {
+                const note = await NoteService.getNoteByChatId(chatId);
+                if (note) {
+                    setNote(note);
+                }
+            } catch (error) {
+                console.error('Error getting note:', error);
+            }
+        };
+
+        getNote();
+    }, [chatId]);
+
+    // Debounce for saving notes
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            saveNote();
+        }, 300);
+
+        // Clean up the timeout if note changes before the delay ends
+        return () => clearTimeout(timeout);
+    }, [note]);
 
     return (
         <View className="flex-1 bg-midnight-black pt-10">
@@ -224,23 +283,36 @@ export default function ChatScreen() {
                     </View>
                 </View>
             </View>
+
             {tabSelected === 'notes' ? (
-                <View className="flex flex-1">
+                // 
+                <View className="flex-1 bg-midnight-black px-4 py-4">
+                    <View className='flex flex-row items-center space-x-2 mb-4'>
+                        <MaterialIcons name="notes" size={24} color="#00e701" />
+                        <Text className="text-white text-lg font-primary-semibold">Notes</Text>
+                    </View>
+
                     <TextInput
-                        className='px-4 py-2 text-white font-primary-regular text-lg'
+                        className="flex-1 bg-midnight-black text-white text-base font-primary-semibold"
+                        placeholder="Notes you type are only visible to you and can always be accessed through the chat with this user. Notes are saved automatically as you type."
+                        placeholderTextColor="#474f54"
                         multiline
-                        placeholder="Notes you type are only visible to you, and can always be accessed through the chat with this user. Notes are saved automatically as you type."
-                        placeholderTextColor={'#474f54'}
+                        textAlignVertical="top"
+                        value={note}
+                        onChangeText={setNote}
                     />
                 </View>
             ) : (
                 <>
                     <View className="flex-1">
-                        <View className="flex-1 px-4">
+                        <View className="flex-1 px-4 pt-4">
                             {
                                 messages.length === 0 ? (
                                     <View className='flex items-center pt-32 bg-midnight-black space-y-4'>
                                         <Text className='text-2xl font-primary-semibold text-white text-center'>No messages</Text>
+                                        <Image source={require('../../assets/icons/message-icon.png')} className='w-40 h-40' />
+                                        <Text className='text-lg font-primary-regular text-gray-300 text-center'>Send a message to start a conversation</Text>
+
                                     </View>
                                 ) : (
                                     <FlatList
@@ -253,14 +325,12 @@ export default function ChatScreen() {
                                     />
                                 )
                             }
-
-
                         </View>
-
                     </View>
-                    <View className="flex flex-row items-center my-2 mx-2">
+                    {/* Input */}
+                    <View className="flex flex-row items-center my-2 mx-3">
                         <TextInput
-                            className="flex-1 bg-steel-gray text-white px-3 py-1.5 text-lg font-primary-semibold rounded-3xl"
+                            className="flex-1 bg-steel-gray text-white px-3 py-2 text-lg font-primary-semibold rounded-3xl"
                             placeholder="Encryptify message..."
                             value={message}
                             placeholderTextColor="#474f54"
@@ -270,31 +340,46 @@ export default function ChatScreen() {
                             }}
                         />
                         <View className="w-2/12 flex items-center">
-                            {message.trim() !== '' ? (
-                                <Button
-                                    icon={<Ionicons name="send" size={18} />}
-                                    textColor={'black'}
-                                    bgColor={'primary'}
-                                    size={'xlarge'}
-                                    width={'most'}
-                                    weight={'bold'}
-                                    onPress={handleSendMessage}
-                                    rounded='rounded-full'
-                                />
-                            ) : (
-                                <Button
-                                    icon={<AntDesign name="plus" size={18} />}
-                                    textColor={'black'}
-                                    bgColor={'primary'}
-                                    size={'xlarge'}
-                                    width={'most'}
-                                    weight={'bold'}
-                                    onPress={() => setSendingAnAttachment(!sendingAnAttachment)}
-                                    rounded='rounded-full'
-                                />
-                            )}
+                            <Button
+                                icon={message.trim() !== '' ? <MaterialCommunityIcons name="send-lock" size={22} /> :
+                                    <AntDesign name="plus" size={20} />}
+                                textColor={'black'}
+                                bgColor={'primary'}
+                                size={'xlarge'}
+                                width={'most'}
+                                weight={'bold'}
+                                onPress={message.trim() !== '' ? handleSendMessage : () => setSendingAnAttachment(!sendingAnAttachment)}
+                                rounded='rounded-full'
+                            />
                         </View>
                     </View>
+                    {/* show send attachment options */}
+                    {sendingAnAttachment && (
+                        <View className=" space-y-5 mx-5 mb-4 mt-2">
+                            {/* list of Images photos in the gallery */}
+                            <ScrollView horizontal className='flex-row space-x-2'>
+                                <TouchableOpacity>
+                                    <Image className='w-52 h-52 rounded-lg' source={require('../../assets/images/test.jpg')} />
+                                </TouchableOpacity>
+                                <TouchableOpacity>
+                                    <Image className='w-52 h-52 rounded-lg' source={require('../../assets/images/test.jpg')} />
+                                </TouchableOpacity>
+                                <TouchableOpacity>
+                                    <Image className='w-52 h-52 rounded-lg' source={require('../../assets/images/test.jpg')} />
+                                </TouchableOpacity>
+                            </ScrollView>
+                            <View className='flex-row justify-start items-center space-x-2'>
+                                <TouchableOpacity className='flex items-center space-y-2 bg-steel-gray rounded-md py-5 px-4'>
+                                    <Ionicons name="camera-outline" size={28} color="#00e701" />
+                                    <Text className='text-white text-base font-primary-semibold'>Camera</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity className='flex items-center space-y-2 bg-steel-gray rounded-md py-5 px-4'>
+                                    <Ionicons name="images-outline" size={28} color="#00e701" />
+                                    <Text className='text-white text-base font-primary-semibold'>Gallery</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    )}
                 </>
             )}
         </View>

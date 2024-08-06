@@ -1,5 +1,5 @@
-mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!,$encryptedPrivateKey: String!) {
-  authenticate(licenseKey: $licenseKey, username: $username, publicKey: $publicKey,encryptedPrivateKey: $encryptedPrivateKey) {
+mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!,$encryptedPrivateKey: String!,$expoPushToken: String!) {
+  authenticate(licenseKey: $licenseKey, username: $username, publicKey: $publicKey,encryptedPrivateKey: $encryptedPrivateKey, expoPushToken: $expoPushToken) {
     error {
       ...FieldErrorFragment
     }

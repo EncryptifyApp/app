@@ -5,11 +5,14 @@ interface Props {
     title: string;
     description: string;
     icon: React.ReactNode;
+    onClick?: () => void;
 }
 
-export default function MenuItem({ title, description, icon }: Props) {
+export default function MenuItem({ title, description, icon, onClick }: Props) {
     return (
-        <TouchableOpacity className='flex flex-row space-x-6 items-center py-3 px-5'>
+        <TouchableOpacity
+            onPress={onClick}
+            className='flex flex-row space-x-6 items-center py-3 px-5'>
             {icon}
             <View className='flex'>
                 <Text className='font-primary-semibold text-white text-lg'>{title}</Text>

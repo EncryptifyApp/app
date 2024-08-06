@@ -79,12 +79,12 @@ export type Mutation = {
   markAsRead: GeneralResponse;
   sendMessage: Message;
   sendPendingMessage: Message;
-  updateUserExpoPushToken: GeneralResponse;
 };
 
 
 export type MutationAuthenticateArgs = {
   encryptedPrivateKey: Scalars['String'];
+  expoPushToken: Scalars['String'];
   licenseKey: Scalars['String'];
   publicKey: Scalars['String'];
   username: Scalars['String'];
@@ -110,12 +110,6 @@ export type MutationSendMessageArgs = {
 export type MutationSendPendingMessageArgs = {
   chatId: Scalars['String'];
   content: Scalars['String'];
-};
-
-
-export type MutationUpdateUserExpoPushTokenArgs = {
-  expoPushToken: Scalars['String'];
-  userId: Scalars['String'];
 };
 
 export type Query = {
@@ -146,8 +140,6 @@ export type QueryGetChatbyUserIdArgs = {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  messageDelivered: Array<Scalars['String']>;
-  messageRead: Array<Scalars['String']>;
   newMessage: Message;
 };
 
@@ -177,6 +169,7 @@ export type AuthenticateMutationVariables = Exact<{
   username: Scalars['String'];
   publicKey: Scalars['String'];
   encryptedPrivateKey: Scalars['String'];
+  expoPushToken: Scalars['String'];
 }>;
 
 
@@ -283,12 +276,13 @@ export const ChatFragmentFragmentDoc = gql`
 }
     ${MessageFragmentFragmentDoc}`;
 export const AuthenticateDocument = gql`
-    mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!, $encryptedPrivateKey: String!) {
+    mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!, $encryptedPrivateKey: String!, $expoPushToken: String!) {
   authenticate(
     licenseKey: $licenseKey
     username: $username
     publicKey: $publicKey
     encryptedPrivateKey: $encryptedPrivateKey
+    expoPushToken: $expoPushToken
   ) {
     error {
       ...FieldErrorFragment

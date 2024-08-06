@@ -9,13 +9,17 @@ import { decryptChat } from '../utils/decryptChat'
 import getChats from '../operations/getChats'
 
 type State = {
+    //TODO: remove this from here cause session is already set in the app context
+    session: string | null,
     chats: Chat[],
     syncing: boolean,
+    chatIdToUpdated?: string | null,
 }
 
 type Actions = {
     clearChats: () => void
-    setChats: (chats: Chat[], user: User) => void
+    setChats: (chats: Chat[], user: User) => void,
+    setChatIdToUpdated: (chatId: string | null) => void
     setSyncing: (syncing: boolean) => void
     updateChats: (session: string, message: Message, user: User) => Promise<void>
     updateMessage: (messageTempId: string, id: string, status: MessageStatus, createdAt: Date) => Promise<void>
@@ -25,25 +29,27 @@ type Actions = {
 }
 
 const useChatStore = create<State & Actions>((set, get) => ({
+    //TODO: remove this from here cause session is already set in the app context
+    session: null,
     chats: [],
     syncing: true,
     isConnected: false,
     clearChats: () => {
         ChatService.clearChats();
-        set({ chats: [] })
+        set({ chats: [] });
     },
+    setChatIdToUpdated: (chatId) => set({ chatIdToUpdated: chatId }),
     setSyncing: (syncing) => set({ syncing }),
     setChats: async (chats, user) => {
         try {
             set({ syncing: true });
-            console.log("fetching data from server");
             if (chats) {
                 await ChatService.storeChatsLocally(chats);
                 const decryptedChats = await decryptChats(chats, user!);
                 set({ chats: sortChats(decryptedChats!) });
             }
         } catch (error) {
-            console.error('Error fetching messages from the server:', error);
+            console.error('Error decrypting messages', error);
         } finally {
             set({ syncing: false });
         }
@@ -90,7 +96,7 @@ const useChatStore = create<State & Actions>((set, get) => ({
                 chat.messages![messageIndex].id = id;
                 chat.messages![messageIndex].status = status;
                 chat.messages![messageIndex].createdAt = createdAt;
-                set({ chats: sortChats(updatedChats) });
+                set({ chats: updatedChats });
                 await ChatService.updateMessageStatus(messageTempId, id, createdAt);
             }
         }
@@ -105,32 +111,47 @@ const useChatStore = create<State & Actions>((set, get) => ({
         const { chats } = get();
         return chats.find((chat) => chat.id === chatId);
     },
-    fetchData: async (user, isConnected, session) => {
-        console.log("fetching data from local storage");
+    fetchData: async (user, isConnected, userSession) => {
+        //TODO: remove this from here cause session is already set in the app context
+        const { session } = get();
+        if (!session) {
+            set({ session: userSession });
+        }
+
+        //start time to measure performance
+        const startTime = new Date().getTime();
         try {
+            set({ syncing: true });
             const localChats = await ChatService.getLocalChats();
             const decryptedChats = await decryptChats(localChats, user);
             set({ chats: sortChats(decryptedChats!) });
-
             if (isConnected) {
-                console.log("fetching data from server");
+                set({ syncing: true });
                 try {
-                    const chats = await getChats(session);
+                    const chats = await getChats(userSession) as any;
                     if (chats) {
                         const decryptedChats = await decryptChats(chats, user);
                         set({ chats: sortChats(decryptedChats!) });
                         set({ syncing: false });
+                        await ChatService.storeChatsLocally(chats);
                     }
                 } catch (error) {
                     console.error('Error fetching messages from the server:', error);
                     throw error;
                 }
-            } else {
-                set({ syncing: false });
+                finally {
+                    set({ syncing: false });
+                }
             }
         } catch (error) {
             console.error('Error fetching messages from local storage:', error);
             throw error;
+        } finally {
+            set({ syncing: false })
+            //end time to measure performance
+            const endTime = new Date().getTime();
+            const timeDiff = endTime - startTime;
+            console.log(`Time taken to fetch data: ${timeDiff}ms`);
         }
     },
 }))

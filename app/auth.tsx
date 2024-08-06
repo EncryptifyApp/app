@@ -11,6 +11,8 @@ import { Feather } from '@expo/vector-icons';
 import { setStorageItemAsync, useStorageState } from '../utils/useStorageState';
 import { router } from 'expo-router';
 import { generatePhrase } from '../utils/generatePhrase';
+import * as Notifications from 'expo-notifications';
+import Constants from "expo-constants";
 
 type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE' | 'INPUT_USERNAME';
 
@@ -34,7 +36,7 @@ export default function Auth() {
 
   //licenseKey
   const [licenseKey, setLicenseKey] = useState<string>('');
-  const [result, reexecuteQuery] = useFindAccountQuery({ variables: { licenseKey: licenseKey }, pause: licenseKey === '' });
+  const [result, executeQuery] = useFindAccountQuery({ variables: { licenseKey: licenseKey }, pause: licenseKey === '' });
 
   //passphrase
   const [passphrase, setPassphrase] = useState<string>('');
@@ -49,7 +51,7 @@ export default function Auth() {
   const [, authenticate] = useAuthenticateMutation();
 
 
-
+  //TODO: FIX: when you paste it it reject it
   const formatLicenseKey = (text: string) => {
     // Remove any dashes and uppercase the input
     text = text.replace(/-/g, '').toUpperCase();
@@ -72,8 +74,7 @@ export default function Auth() {
   };
 
 
-  const FindLicense = async () => {
-
+  const FindAccountByLicense = async () => {
     if (licenseKey === '' || licenseKey.length != 17) {
       Alert.alert('Not a valid number', 'Enter a valid number', [
         {
@@ -86,7 +87,7 @@ export default function Auth() {
     }
     try {
       setLoading(true);
-      reexecuteQuery();
+      executeQuery();
       const { data } = result;
 
       if (data?.findAccount.error) {
@@ -194,11 +195,18 @@ export default function Auth() {
     }
     try {
       setLoading(true);
+
+      //Expo token
+      const projectId = Constants.expoConfig?.extra?.eas.projectId
+      const expoPushToken = (await Notifications.getExpoPushTokenAsync({
+        projectId,
+      })).data;
       const { data } = await authenticate({
         username: username,
         licenseKey: licenseKey,
         publicKey: publicKey,
-        encryptedPrivateKey: encryptedPrivateKey
+        encryptedPrivateKey: encryptedPrivateKey,
+        expoPushToken: expoPushToken
       });
       if (data?.authenticate.error) {
         Alert.alert('Error', data.authenticate.error.message, [
@@ -260,8 +268,7 @@ export default function Auth() {
             weight="semibold"
             rounded='rounded-md'
             disabled={licenseKey.length !== 17}
-            onPress={FindLicense} />
-          {/* <DecryptingAnimation finalText="Decrypting Text..." duration={3000} /> */}
+            onPress={FindAccountByLicense} />
           <Text className="text-white text-base font-primary-medium text-center mt-8">If you do not have a license key, you can acquire one through our official website.</Text>
         </>
 

@@ -1,4 +1,4 @@
-import { FlatList, SafeAreaView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, SafeAreaView, StatusBar, Text, TouchableOpacity, View, Image } from 'react-native';
 import { User, useNewMessageSubscription } from '../../__generated__/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
@@ -14,33 +14,36 @@ import useChatStore from '../../context/useChatStore';
 export default function Index() {
     const router = useRouter();
     const { user, session } = useSession() as { user: User | null, session: string | null };
-    const { syncing, chats, updateChats } = useChatStore();
+    const { syncing, chats, updateChats, setChatIdToUpdated } = useChatStore();
     const [res] = useNewMessageSubscription();
-
-    const [chatIdToUpdated, setChatIdToUpdated] = useState<string | null>(null);
+    
 
     //TODO: remove this from here
     const [processedMessages, setProcessedMessages] = useState(new Set());
     useEffect(() => {
-        if (!res.data?.newMessage || processedMessages.has(res.data.newMessage.id)) return;
+        // Check if the new message exists and is not already processed
+        if (res.data?.newMessage && !processedMessages.has(res.data.newMessage.id)) {
+            if (res.data.newMessage.sender!.id !== user!.id) {
+                setProcessedMessages(prevMessages => {
+                    const newMessages = new Set(prevMessages);
+                    newMessages.add(res.data?.newMessage.id);
+                    return newMessages;
+                });
 
-        if (res.data.newMessage.sender.id != user!.id) {
-            // Add the new message id to the set of processed messages
-            setProcessedMessages(prevMessages => new Set(prevMessages).add(res.data!.newMessage.id));
-            // Execute updateChats only for new messages
-            setChatIdToUpdated(res.data.newMessage.chat?.id!);
-            updateChats(session!, res.data.newMessage, user!);
+                setChatIdToUpdated(res.data.newMessage.chat?.id!);
+                updateChats(session!, res.data.newMessage, user!);
+            }
         }
     }, [res, processedMessages]);
 
 
 
     const renderChatItem = ({ item }: { item: ChatType }) => (
-        <Chat key={item.id} chat={item} chatIdToUpdated={chatIdToUpdated} />
+        <Chat key={item.id} chat={item} />
     );
 
     if (!user) {
-        return null;
+        return <View className="flex-1 bg-midnight-black"></View>;
     }
 
     return (
@@ -53,15 +56,16 @@ export default function Index() {
                     showHideTransition={'fade'}
                 />
                 {/* Header */}
-                <Header syncing={syncing} title="Chats" />
+                <Header title="Chats" syncing={syncing} />
 
+                
                 {/* Chats */}
-                <View className='bg-midnight-black rounded-t-2xl flex-1'>
-                    {/* dash */}
-                    <View className='bg-steel-gray w-14 h-2 rounded-full mx-auto mt-4'></View>
+                <View
+                    className='bg-midnight-black rounded-t-2xl flex-1'>
                     {/* Header */}
-                    <View className="flex-row justify-between py-3 space-x-2 items-center px-4">
-                        <Text className="font-primary-semibold text-white text-xl">
+                    <View className="flex-row justify-start py-3 space-x-2 items-center px-4">
+                        <Image source={require('../../assets/icons/message-icon.png')} className='w-10 h-10' />
+                        <Text className="font-primary-semibold text-white text-lg">
                             Recent chats
                         </Text>
                     </View>
@@ -70,13 +74,14 @@ export default function Index() {
                         <View className='flex items-center pt-32 bg-midnight-black space-y-4'>
                             <Text className='text-2xl font-primary-semibold text-white text-center'>No chats</Text>
                             <Text className='text-base font-primary-semibold text-white text-center'>Start a new chat by scanning a QR code {"\n"} or entering a user id</Text>
+                            <Image source={require('../../assets/icons/messages-icon.png')} className='w-40 h-40' />
                         </View>
                     ) : (
                         <FlatList
                             data={chats}
                             renderItem={renderChatItem}
                             keyExtractor={(item) => item.id}
-                            contentContainerStyle={{ paddingBottom: 80 }} // Add padding at the bottom to prevent overlapping with the bottom navigation
+                            contentContainerStyle={{ paddingBottom: 80 }}
                         />
                     )}
                 </View>
