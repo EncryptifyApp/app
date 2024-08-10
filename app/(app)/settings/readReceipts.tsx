@@ -3,7 +3,7 @@ import { View, SafeAreaView, StatusBar, Text, Switch } from 'react-native'
 import Header from '../../../components/Header'
 
 export default function ReadReceipts() {
-    const [hideSeen, setHideSeen] = useState(true);
+    const [hideSeen, setHideSeen] = useState(false);
     const toggleHideSeen = () => setHideSeen(previousState => !previousState);
     return (
         <View className="flex-1 bg-midnight-black">

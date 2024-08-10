@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
 import { router } from "expo-router";
 
 export const usePushNotifications = (): void => {
@@ -13,11 +14,11 @@ export const usePushNotifications = (): void => {
         }),
     });
 
-
     const notificationListener = useRef<Notifications.Subscription>();
     const responseListener = useRef<Notifications.Subscription>();
 
     async function registerForPushNotificationsAsync() {
+        console.log("Connecting...")
         if (Device.isDevice) {
             const { status: existingStatus } =
                 await Notifications.getPermissionsAsync();
@@ -41,13 +42,16 @@ export const usePushNotifications = (): void => {
                 importance: Notifications.AndroidImportance.MAX,
                 vibrationPattern: [0, 250, 250, 250],
                 lightColor: "#00e701",
-                groupId: "chat",
             });
         }
     }
 
     useEffect(() => {
-        registerForPushNotificationsAsync();
+        const unsubscribe = NetInfo.addEventListener(state => {
+            if (state.isConnected) {
+                registerForPushNotificationsAsync();
+            }
+        });
 
         notificationListener.current =
             Notifications.addNotificationReceivedListener((notification) => {
@@ -56,9 +60,9 @@ export const usePushNotifications = (): void => {
 
         responseListener.current =
             Notifications.addNotificationResponseReceivedListener((response) => {
-                console.log("DATA",response.notification.request.content.data)
+                console.log("DATA", response.notification.request.content.data)
                 const chatId = response.notification.request.content.data.chatId;
-                if(chatId) {
+                if (chatId) {
                     router.push({ pathname: "/chat", params: { chatId: chatId } });
                 }
             });
@@ -69,6 +73,8 @@ export const usePushNotifications = (): void => {
             );
 
             Notifications.removeNotificationSubscription(responseListener.current!);
+
+            unsubscribe();
         };
     }, []);
 };

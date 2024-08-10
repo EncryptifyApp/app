@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Modal, TouchableWithoutFeedback } from 'react-native';
 import Button from '../../components/Button';
 import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { User, Message, MessageStatus } from '../../__generated__/graphql';
 import { encryptMessage } from '../../utils/encryptMessage';
 import Widget from '../../components/Widget';
@@ -19,7 +19,6 @@ import * as Clipboard from 'expo-clipboard';
 import moment from 'moment';
 import DateSplitter from '../../components/DateSplitter';
 import NoteService from '../../services/NoteService';
-import { ScrollView } from 'react-native-gesture-handler';
 
 
 export default function ChatScreen() {
@@ -30,7 +29,7 @@ export default function ChatScreen() {
     const { chats, updateChats, updateMessage, setChatIdToUpdated } = useChatStore();
     const data = useLocalSearchParams();
     const chatId = data["chatId"] as string;
-    const [chat] = useState(chats!.find((c) => c.id === chatId));
+    const [chat] = useState(chats?.find((c) => c.id === chatId));
     const [messages, setMessages] = useState<Message[]>(chat?.messages!);
     const [message, setMessage] = useState('');
     const [toUser] = useState<User>(chat?.members!.find((member) => member.id !== user!.id)!);
@@ -138,7 +137,9 @@ export default function ChatScreen() {
     };
 
 
-    if (!chat) return <View className="flex-1 bg-midnight-black"></View>;
+    if (!chat) {
+        return <Redirect href="/" />;
+    }
 
     const profileSource = toUser?.profileUrl
         ? { uri: toUser.profileUrl }
@@ -329,57 +330,32 @@ export default function ChatScreen() {
                     </View>
                     {/* Input */}
                     <View className="flex flex-row items-center my-2 mx-3">
-                        <TextInput
-                            className="flex-1 bg-steel-gray text-white px-3 py-2 text-lg font-primary-semibold rounded-3xl"
-                            placeholder="Encryptify message..."
-                            value={message}
-                            placeholderTextColor="#474f54"
-                            onChangeText={(text) => setMessage(text)}
-                            onFocus={() => {
-                                setSendingAnAttachment(false);
-                            }}
-                        />
-                        <View className="w-2/12 flex items-center">
+                        <View className="flex-1 flex flex-row items-center bg-steel-gray rounded-full px-3 py-2">
+                            <TextInput
+                                className="flex-1 text-white text-lg font-primary-semibold"
+                                placeholder="Encryptify message..."
+                                value={message}
+                                placeholderTextColor="#474f54"
+                                onChangeText={(text) => setMessage(text)}
+                                onFocus={() => setSendingAnAttachment(false)}
+                            />
+                            <TouchableOpacity className="ml-2">
+                                <Ionicons name="camera-outline" size={24} color="white" />
+                            </TouchableOpacity>
+                        </View>
+                        <View className="ml-3">
                             <Button
                                 icon={message.trim() !== '' ? <MaterialCommunityIcons name="send-lock" size={22} /> :
                                     <AntDesign name="plus" size={20} />}
                                 textColor={'black'}
                                 bgColor={'primary'}
                                 size={'xlarge'}
-                                width={'most'}
                                 weight={'bold'}
                                 onPress={message.trim() !== '' ? handleSendMessage : () => setSendingAnAttachment(!sendingAnAttachment)}
                                 rounded='rounded-full'
                             />
                         </View>
                     </View>
-                    {/* show send attachment options */}
-                    {sendingAnAttachment && (
-                        <View className=" space-y-5 mx-5 mb-4 mt-2">
-                            {/* list of Images photos in the gallery */}
-                            <ScrollView horizontal className='flex-row space-x-2'>
-                                <TouchableOpacity>
-                                    <Image className='w-52 h-52 rounded-lg' source={require('../../assets/images/test.jpg')} />
-                                </TouchableOpacity>
-                                <TouchableOpacity>
-                                    <Image className='w-52 h-52 rounded-lg' source={require('../../assets/images/test.jpg')} />
-                                </TouchableOpacity>
-                                <TouchableOpacity>
-                                    <Image className='w-52 h-52 rounded-lg' source={require('../../assets/images/test.jpg')} />
-                                </TouchableOpacity>
-                            </ScrollView>
-                            <View className='flex-row justify-start items-center space-x-2'>
-                                <TouchableOpacity className='flex items-center space-y-2 bg-steel-gray rounded-md py-5 px-4'>
-                                    <Ionicons name="camera-outline" size={28} color="#00e701" />
-                                    <Text className='text-white text-base font-primary-semibold'>Camera</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity className='flex items-center space-y-2 bg-steel-gray rounded-md py-5 px-4'>
-                                    <Ionicons name="images-outline" size={28} color="#00e701" />
-                                    <Text className='text-white text-base font-primary-semibold'>Gallery</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    )}
                 </>
             )}
         </View>

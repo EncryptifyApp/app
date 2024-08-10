@@ -19,21 +19,19 @@ export default function Index() {
     
 
     //TODO: remove this from here
+    //TODO: clear the processed messages when done
     const [processedMessages, setProcessedMessages] = useState(new Set());
     useEffect(() => {
-        // Check if the new message exists and is not already processed
-        if (res.data?.newMessage && !processedMessages.has(res.data.newMessage.id)) {
-            if (res.data.newMessage.sender!.id !== user!.id) {
-                setProcessedMessages(prevMessages => {
-                    const newMessages = new Set(prevMessages);
-                    newMessages.add(res.data?.newMessage.id);
-                    return newMessages;
-                });
+        if (!res.data?.newMessage || processedMessages.has(res.data.newMessage.id)) return;
 
-                setChatIdToUpdated(res.data.newMessage.chat?.id!);
-                updateChats(session!, res.data.newMessage, user!);
-            }
+        if (res.data.newMessage.sender.id != user!.id) {
+            // Add the new message id to the set of processed messages
+            setProcessedMessages(prevMessages => new Set(prevMessages).add(res.data!.newMessage.id));
+            // Execute updateChats only for new messages
+            setChatIdToUpdated(res.data.newMessage.chat?.id!);
+            updateChats(session!, res.data.newMessage, user!);
         }
+        
     }, [res, processedMessages]);
 
 

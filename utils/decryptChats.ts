@@ -11,7 +11,7 @@ export const decryptChats = async (chats: Chat[], user: User):Promise<Chat[]> =>
         return [];
     }
     
-    if(chats.length == 0) return [];
+    if(chats.length == 0 || chats == null) return [];
 
     const decryptedChats = chats.map((chat) => {
         if(chat.messages?.length == 0) {

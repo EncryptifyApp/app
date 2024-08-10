@@ -3,7 +3,7 @@ import { View, SafeAreaView, StatusBar, Text, Switch } from 'react-native'
 import Header from '../../../components/Header'
 
 export default function Typing() {
-    const [hideTyping, setHideTyping] = useState(false);
+    const [hideTyping, setHideTyping] = useState(true);
     const toggleHideTyping = () => setHideTyping(previousState => !previousState);
 
 

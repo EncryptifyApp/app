@@ -89,7 +89,6 @@ export default function Auth() {
       setLoading(true);
       executeQuery();
       const { data } = result;
-
       if (data?.findAccount.error) {
         Alert.alert('Error', data.findAccount.error.message, [
           {

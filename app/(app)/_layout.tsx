@@ -9,7 +9,6 @@ import {
 } from '@expo-google-fonts/rajdhani';
 import useChatStore from '../../context/useChatStore';
 import { View } from 'react-native';
-import { useEffect } from 'react';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,11 +23,6 @@ export default function AppLayout() {
         Rajdhani_600SemiBold,
         Rajdhani_700Bold,
     });
-
-    useEffect(() => {
-        console.log("loading", isLoading);
-        console.log("syncing", syncing);
-    },[isLoading,syncing])
 
 
     if (!syncing && !isLoading) {
@@ -50,5 +44,5 @@ export default function AppLayout() {
     }
 
 
-    return <Stack screenOptions={{ headerShown: false, animation: "fade_from_bottom" }} />
+    return <Stack screenOptions={{ headerShown: false, animation:"fade_from_bottom"}} />
 }

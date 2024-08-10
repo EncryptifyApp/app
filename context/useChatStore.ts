@@ -7,9 +7,12 @@ import { decryptMessage } from '../utils/decryptMessage'
 import getChatById from '../operations/getChatById'
 import { decryptChat } from '../utils/decryptChat'
 import getChats from '../operations/getChats'
+import { sendPendingMessage } from '../operations/sendPendingMessages'
 
 type State = {
     //TODO: remove this from here cause session is already set in the app context
+    // this is done just to get it in the layout so we can detect if the user is logged in
+    // without closing the app
     session: string | null,
     chats: Chat[],
     syncing: boolean,
@@ -26,10 +29,13 @@ type Actions = {
     addNewChat: (newChat: Chat) => Promise<void>
     getChat: (chatId: string) => Chat | undefined
     fetchData: (user: User, isConnected: boolean, session: string) => Promise<void>
+    sendPendingMessages: (user: User) => Promise<void>
 }
 
 const useChatStore = create<State & Actions>((set, get) => ({
     //TODO: remove this from here cause session is already set in the app context
+    // this is done just to get it in the layout so we can detect if the user is logged in
+    // without closing the app
     session: null,
     chats: [],
     syncing: true,
@@ -113,6 +119,8 @@ const useChatStore = create<State & Actions>((set, get) => ({
     },
     fetchData: async (user, isConnected, userSession) => {
         //TODO: remove this from here cause session is already set in the app context
+        // this is done just to get it in the layout so we can detect if the user is logged in
+        // without closing the app
         const { session } = get();
         if (!session) {
             set({ session: userSession });
@@ -152,6 +160,21 @@ const useChatStore = create<State & Actions>((set, get) => ({
             const endTime = new Date().getTime();
             const timeDiff = endTime - startTime;
             console.log(`Time taken to fetch data: ${timeDiff}ms`);
+        }
+    },
+    sendPendingMessages: async (user: User) => {
+        try {
+            const { session, updateMessage } = get();
+            const pendings = await ChatService.getPendingMessages();
+            if (pendings.length === 0) return;
+            for (const message of pendings) {
+                const res = await sendPendingMessage(session!, message.chat?.id!, message.content);
+                if (res?.id) {
+                    updateMessage(message.id, res.id, MessageStatus.Sent, new Date(res.createdAt));
+                }
+            }
+        } catch (error) {
+            console.error('Error sending pending messages:', error);
         }
     },
 }))

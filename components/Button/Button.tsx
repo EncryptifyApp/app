@@ -6,7 +6,7 @@ interface Props {
   textColor?: string;
   bgColor?: string;
   size: "small" | "medium" | "large" | "xlarge";
-  width: "full" | "half" | "most" | "min" | "xmin";
+  width?: "full" | "half" | "most" | "min" | "xmin";
   weight?: "regular" | "normal" | "bold" | "semibold";
   rounded: "rounded-none" | "rounded-md" | "rounded-lg" | "rounded-xl" | "rounded-2xl" | "rounded-3xl" | "rounded-full";
   icon?: any;

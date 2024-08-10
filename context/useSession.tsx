@@ -36,7 +36,7 @@ export function useSession() {
 
 export function SessionProvider(props: React.PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
-  const { fetchData, setSyncing, clearChats } = useChatStore();
+  const { fetchData, setSyncing, clearChats, sendPendingMessages } = useChatStore();
   const { isConnected } = useConnection();
   const [user, setUser] = useState<User | null>(null);
   const [subscriptionEndDate, setSubscriptionEndDate] = useState<Date | null>(null);
@@ -63,7 +63,10 @@ export function SessionProvider(props: React.PropsWithChildren) {
 
   useEffect(() => {
     fetchUser();
-  }, [session,isConnected]);
+    if (isConnected && user) {
+      sendPendingMessages(user!);
+    }
+  }, [session, isConnected]);
 
   const signOut = async () => {
     // clear chats from state and storage

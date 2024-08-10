@@ -4,7 +4,7 @@
     "slug": "encryptifyapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/adaptive-icon.png",
+    "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "your-app-scheme",
     "projectId": "d7e292be-b3e9-4c2e-9ae7-46dec613294a",
@@ -35,17 +35,15 @@
       "versionCode": 1,
       "googleServicesFile": "./android/app/google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#00e701"
       },
       "permissions": [
         "android.permission.CAMERA"
       ],
       "notification": {
-        "icon": "./assets/images/adaptive-icon.png",
-        "color": "#00e701",
-        "androidMode": "default",
-        "androidCollapsedTitle": "New messages"
+        "icon": "./assets/images/notif-icon.png",
+        "color": "#00e701"
       }
     },
     "web": {
