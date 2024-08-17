@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Provider, createClient, fetchExchange, cacheExchange, subscriptionExchange } from 'urql';
+import { Provider, createClient, fetchExchange, cacheExchange, subscriptionExchange, dedupExchange } from 'urql';
 import { createClient as createWSClient } from 'graphql-ws';
 import { Slot } from 'expo-router';
 import { httpUrl, wsUrl } from '../config';
@@ -9,12 +9,13 @@ import { SessionProvider } from '../context/useSession';
 import { ConnectionProvider } from '../context/useConnection';
 import useChatStore from '../context/useChatStore';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import { multipartFetchExchange } from '@urql/exchange-multipart-fetch';
 
 
 const Root = () => {
   //NOTIFICATIONS
   usePushNotifications();
-  
+
   const { session } = useChatStore();
   const [isConnected, setIsConnected] = useState(false);
   const [wsClient, setWsClient] = useState<any>(null);
@@ -117,6 +118,7 @@ const Root = () => {
       return session ? { headers: { Authorization: `${session}` } } : {};
     },
     exchanges: [
+      dedupExchange,
       cacheExchange,
       fetchExchange,
       subscriptionExchange({

@@ -13,6 +13,8 @@ import { router } from 'expo-router';
 import { generatePhrase } from '../utils/generatePhrase';
 import * as Notifications from 'expo-notifications';
 import Constants from "expo-constants";
+import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
+import { styled } from 'nativewind';
 
 type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE' | 'INPUT_USERNAME';
 
@@ -40,8 +42,11 @@ export default function Auth() {
 
   //passphrase
   const [passphrase, setPassphrase] = useState<string>('');
-  const [username, setUsername] = useState<string>('');
   const [isPassphraseCopied, setIsPassphraseCopied] = useState<boolean>(false);
+
+  //profile
+  const [username, setUsername] = useState<string>('');
+  const [profileUrl, setProfileUrl] = useState<string>('');
 
   //keys
   const [publicKey, setPublicKey] = useState<string>('');
@@ -50,6 +55,10 @@ export default function Auth() {
 
   const [, authenticate] = useAuthenticateMutation();
 
+
+  const StyledView = styled(View);
+  const StyledImage = styled(Image);
+  const StyledTouchableOpacity = styled(TouchableOpacity);
 
   //TODO: FIX: when you paste it it reject it
   const formatLicenseKey = (text: string) => {
@@ -88,9 +97,19 @@ export default function Auth() {
     try {
       setLoading(true);
       executeQuery();
-      const { data } = result;
+      const { data, error} = result;
+      console.log(result);
       if (data?.findAccount.error) {
         Alert.alert('Error', data.findAccount.error.message, [
+          {
+            text: 'Close',
+            onPress: () => { },
+            style: 'cancel',
+          },
+        ]);
+      }
+      if(error) {
+        Alert.alert('Error', 'An error occured, try again later', [
           {
             text: 'Close',
             onPress: () => { },
@@ -104,6 +123,7 @@ export default function Auth() {
         }
         else {
           setUsername(data.findAccount.user.username!);
+          setProfileUrl(data.findAccount.user.profileUrl!);
           setPublicKey(data.findAccount.user.publicKey!);
           setEncryptedPrivateKey(data.findAccount.user.encryptedPrivateKey!);
           setStep('INPUT_PASSPHRASE');
@@ -142,6 +162,7 @@ export default function Auth() {
       setPrivateKey(privateKey);
       setEncryptedPrivateKey(encryptedPrivateKey);
 
+      await getProfiles();
       setStep('INPUT_USERNAME');
     }
     catch (error) {
@@ -155,7 +176,8 @@ export default function Auth() {
     }
   }
 
-  const DecryptPrivateKeys = async () => {
+
+  const DecryptPrivateKey = async () => {
     try {
       setLoading(true);
       //decrypt the private key with the passphrase
@@ -171,6 +193,7 @@ export default function Auth() {
         return
       } else {
         setStorageItemAsync(PRIVATE_KEY, decryptedPrivateKey.toString());
+        await getProfiles();
         setStep('INPUT_USERNAME');
       }
     }
@@ -188,52 +211,60 @@ export default function Auth() {
 
   }
 
+
+
+
   const Authenticate = async () => {
     if (username.length < 3) {
-      return
+      return;
     }
     try {
       setLoading(true);
-
+  
       //Expo token
-      const projectId = Constants.expoConfig?.extra?.eas.projectId
+      const projectId = Constants.expoConfig?.extra?.eas.projectId;
       const expoPushToken = (await Notifications.getExpoPushTokenAsync({
         projectId,
       })).data;
-      const { data } = await authenticate({
+  
+      const { data, error } = await authenticate({
         username: username,
         licenseKey: licenseKey,
         publicKey: publicKey,
         encryptedPrivateKey: encryptedPrivateKey,
-        expoPushToken: expoPushToken
+        expoPushToken: expoPushToken,
+
       });
+  
+      console.log(error);
       if (data?.authenticate.error) {
         Alert.alert('Error', data.authenticate.error.message, [
           {
             text: 'Close',
-            onPress: () => { },
+            onPress: () => {},
             style: 'cancel',
           },
         ]);
-      }
-      if (data?.authenticate.sessionToken) {
+      } else if (data?.authenticate.sessionToken) {
         authenticateUser(data.authenticate.sessionToken);
-        router.replace('/')
+        router.replace('/');
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'An error occured, try again later', [
+      Alert.alert('Error', 'An error occurred, try again later', [
         {
           text: 'Close',
-          onPress: () => { },
+          onPress: () => {},
           style: 'cancel',
         },
       ]);
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+
+
 
 
   useEffect(() => {
@@ -242,6 +273,13 @@ export default function Auth() {
     }
   }, [passphrase]);
 
+
+  useEffect(() => {
+    if (username === '') {
+      setProfileUrl('')
+    }
+  }
+    , [username]);
 
   return (
     <View className="flex-1 items-center justify-center px-8 bg-midnight-black space-y-20">
@@ -367,9 +405,6 @@ export default function Auth() {
                 <Text className="text-white text-xl font-primary-bold text-center">Enter you Recovery phrase</Text>
                 <Text className="text-white text-base font-primary-medium text-center">You can only recover your encryption keys with your recovery phrase.</Text>
               </View>
-
-
-
             </View>
             <View className="flex w-full space-y-5 mt-5">
               <View>
@@ -388,6 +423,7 @@ export default function Auth() {
 
               <View>
                 <Button
+                  disabled={loading}
                   text="Enter"
                   textColor="black"
                   bgColor="primary"
@@ -396,7 +432,7 @@ export default function Auth() {
                   size="large"
                   weight="semibold"
                   rounded='rounded-md'
-                  onPress={DecryptPrivateKeys} />
+                  onPress={DecryptPrivateKey} />
               </View>
 
             </View>
@@ -409,44 +445,57 @@ export default function Auth() {
         step === "INPUT_USERNAME" && (
           <>
             <View className="flex flex-col justify-center space-y-5">
-              <View className='space-y-5'>
-                <Text className="text-white text-xl font-primary-bold text-center">Complete your profile</Text>
-              </View>
-              {/* add profile pic and username input */}
+              <View className='space-y-5'><Text className="text-white text-xl font-primary-bold text-center">
+                Complete your profile
+              </Text></View>
+
+              {/* Profile Picture Upload Section */}
               <View className="flex flex-col justify-center space-y-5">
-                <View className="flex flex-row justify-center space-x-5">
-                  <Image
-                    source={require('../assets/images/logo.png')}
-                    className="w-24 h-24 mb-5" />
-                </View>
+                <StyledView className="mx-auto w-24 h-24 mb-5 relative"><StyledImage
+                  source={profileUrl ? { uri: profileUrl } : require('../assets/images/logo.png')}
+                  className="w-24 h-24 rounded-full"
+                /><StyledTouchableOpacity
+                  onPress={() => {}}
+                  className="absolute right-0 bottom-0 bg-black rounded-full p-2"
+                ><Feather name="edit" size={16} color="#00e701" /></StyledTouchableOpacity></StyledView>
+
+                {/* Username Input */}
                 <View className="flex flex-row justify-center space-y-5">
-                  <TextInput
-                    placeholder="Username"
-                    value={username}
-                    placeholderTextColor="#FFF"
-                    className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2"
-                    autoFocus={true}
-                    onChangeText={(text) => setUsername(text)} />
+                  <TextInput placeholder="Username" value={username} placeholderTextColor="#FFF" className="w-full p-2 text-white border-2 font-primary-medium rounded-md text-lg bg-steel-gray border-steel-gray placeholder-slate-100 mx-2" autoFocus={true} onChangeText={(text) => setUsername(text)}
+                  />
                 </View>
-                <View>
-                  <Button
-                    text="Complete"
-                    textColor="black"
-                    bgColor="primary"
+
+                {/* Buttons */}
+                <View className="flex w-full space-y-4">
+                  {/* <View><Button
+                    outline
+                    text="Generate"
+                    textColor="primary"
                     width="full"
-                    loading={loading}
                     size="large"
+                    loading={loading}
+                    disabled={loading}
                     weight="semibold"
                     rounded='rounded-md'
-                    disabled={username.length < 3}
-                    onPress={Authenticate} />
+                    onPress={() => {}}
+                  /></View> */}
+                  <View>
+                    <Button
+                      text="Complete"
+                      textColor="black"
+                      bgColor="primary"
+                      width="full"
+                      loading={loading}
+                      size="large"
+                      weight="semibold"
+                      rounded='rounded-md'
+                      disabled={username.length < 3 || loading}
+                      onPress={Authenticate}
+                    />
+                  </View>
                 </View>
               </View>
-
-
             </View>
-
-
 
           </>
         )
@@ -460,8 +509,7 @@ export default function Auth() {
 
 
         <View className="flex flex-row justify-center space-x-5">
-          <Text className="text-primary font-primary-medium">Privacy Policy</Text>
-          <Text className="text-primary font-primary-medium">Terms of Service</Text>
+          <Text className="text-primary font-primary-medium">Encryptify INC</Text>
         </View>
       </View>
     </View>

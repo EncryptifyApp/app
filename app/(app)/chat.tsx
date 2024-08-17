@@ -330,7 +330,7 @@ export default function ChatScreen() {
                     </View>
                     {/* Input */}
                     <View className="flex flex-row items-center my-2 mx-3">
-                        <View className="flex-1 flex flex-row items-center bg-steel-gray rounded-full px-3 py-2">
+                        <View className="flex-1 flex flex-row items-center bg-steel-gray rounded-2xl px-3 py-2">
                             <TextInput
                                 className="flex-1 text-white text-lg font-primary-semibold"
                                 placeholder="Encryptify message..."
@@ -338,6 +338,8 @@ export default function ChatScreen() {
                                 placeholderTextColor="#474f54"
                                 onChangeText={(text) => setMessage(text)}
                                 onFocus={() => setSendingAnAttachment(false)}
+                                multiline
+                                style={{ maxHeight: 4 * 20 }}
                             />
                             <TouchableOpacity className="ml-2">
                                 <Ionicons name="camera-outline" size={24} color="white" />

@@ -1,5 +1,5 @@
 import { FlatList, SafeAreaView, StatusBar, Text, TouchableOpacity, View, Image } from 'react-native';
-import { User, useNewMessageSubscription } from '../../__generated__/graphql';
+import { Message, User, useNewMessageSubscription } from '../../__generated__/graphql';
 import React, { useEffect, useState } from 'react';
 import Chat from '../../components/Chat';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -11,30 +11,27 @@ import Navigation from '../../components/Navigation';
 import useChatStore from '../../context/useChatStore';
 
 
+
 export default function Index() {
     const router = useRouter();
     const { user, session } = useSession() as { user: User | null, session: string | null };
     const { syncing, chats, updateChats, setChatIdToUpdated } = useChatStore();
+
     const [res] = useNewMessageSubscription();
-    
+    const [lastMessageId, setLastMessageId] = useState<string>('');
 
-    //TODO: remove this from here
-    //TODO: clear the processed messages when done
-    const [processedMessages, setProcessedMessages] = useState(new Set());
     useEffect(() => {
-        if (!res.data?.newMessage || processedMessages.has(res.data.newMessage.id)) return;
+        if (res.data && res.data.newMessage) {
+            const { newMessage } = res.data;
 
-        if (res.data.newMessage.sender.id != user!.id) {
-            // Add the new message id to the set of processed messages
-            setProcessedMessages(prevMessages => new Set(prevMessages).add(res.data!.newMessage.id));
-            // Execute updateChats only for new messages
-            setChatIdToUpdated(res.data.newMessage.chat?.id!);
-            updateChats(session!, res.data.newMessage, user!);
+            // Only proceed if the message is new and not the same as the last one processed
+            if (newMessage.id !== lastMessageId) {
+                setChatIdToUpdated(newMessage.chat?.id!);
+                updateChats(session!, newMessage, user!);
+                setLastMessageId(newMessage.id);
+            }
         }
-        
-    }, [res, processedMessages]);
-
-
+    }, [res.data, lastMessageId]);
 
     const renderChatItem = ({ item }: { item: ChatType }) => (
         <Chat key={item.id} chat={item} />
@@ -56,7 +53,7 @@ export default function Index() {
                 {/* Header */}
                 <Header title="Chats" syncing={syncing} />
 
-                
+
                 {/* Chats */}
                 <View
                     className='bg-midnight-black rounded-t-2xl flex-1'>

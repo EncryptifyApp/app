@@ -78,7 +78,7 @@ export default function Button({
   let sizeClasses = sizes[size];
   let weightClasses = weights[weight as keyof typeof weights];
 
-  let ActivityIndicatorColor = textColor == "primary" ? "#000000" : "#ffffff";
+  let ActivityIndicatorColor = textColor == "primary" && !outline ? "#000000" : "#00e701";
 
   return (
     <TouchableOpacity

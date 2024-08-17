@@ -14,6 +14,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   DateTime: any;
+  Upload: any;
 };
 
 export type AuthResponse = {
@@ -44,20 +45,12 @@ export type FieldError = {
   message: Scalars['String'];
 };
 
-export type GeneralResponse = {
-  __typename?: 'GeneralResponse';
-  error?: Maybe<FieldError>;
-  success?: Maybe<Scalars['Boolean']>;
-};
-
 export type Message = {
   __typename?: 'Message';
   chat?: Maybe<Chat>;
   content: Scalars['String'];
   createdAt: Scalars['DateTime'];
-  deliveredTo?: Maybe<Array<User>>;
   id: Scalars['String'];
-  seenBy?: Maybe<Array<User>>;
   sender: User;
   status?: Maybe<MessageStatus>;
 };
@@ -75,8 +68,6 @@ export enum MessageStatus {
 export type Mutation = {
   __typename?: 'Mutation';
   authenticate: AuthResponse;
-  markAsDelivered: GeneralResponse;
-  markAsRead: GeneralResponse;
   sendMessage: Message;
   sendPendingMessage: Message;
 };
@@ -86,18 +77,9 @@ export type MutationAuthenticateArgs = {
   encryptedPrivateKey: Scalars['String'];
   expoPushToken: Scalars['String'];
   licenseKey: Scalars['String'];
+  profilePic?: InputMaybe<Scalars['Upload']>;
   publicKey: Scalars['String'];
   username: Scalars['String'];
-};
-
-
-export type MutationMarkAsDeliveredArgs = {
-  messageIds: Array<Scalars['String']>;
-};
-
-
-export type MutationMarkAsReadArgs = {
-  messageIds: Array<Scalars['String']>;
 };
 
 
@@ -170,17 +152,11 @@ export type AuthenticateMutationVariables = Exact<{
   publicKey: Scalars['String'];
   encryptedPrivateKey: Scalars['String'];
   expoPushToken: Scalars['String'];
+  profilePic?: InputMaybe<Scalars['Upload']>;
 }>;
 
 
 export type AuthenticateMutation = { __typename?: 'Mutation', authenticate: { __typename?: 'AuthResponse', sessionToken?: string | null, error?: { __typename?: 'FieldError', field: string, message: string } | null } };
-
-export type MarkAsDeliveredMutationVariables = Exact<{
-  messageIds: Array<Scalars['String']> | Scalars['String'];
-}>;
-
-
-export type MarkAsDeliveredMutation = { __typename?: 'Mutation', markAsDelivered: { __typename?: 'GeneralResponse', success?: boolean | null, error?: { __typename?: 'FieldError', field: string, message: string } | null } };
 
 export type SendMessageMutationVariables = Exact<{
   toUserId: Scalars['String'];
@@ -220,7 +196,7 @@ export type FindAccountQueryVariables = Exact<{
 }>;
 
 
-export type FindAccountQuery = { __typename?: 'Query', findAccount: { __typename?: 'AuthenticationUserResponse', error?: { __typename?: 'FieldError', field: string, message: string } | null, user?: { __typename?: 'User', id: string, username?: string | null, publicKey?: string | null, encryptedPrivateKey?: string | null } | null } };
+export type FindAccountQuery = { __typename?: 'Query', findAccount: { __typename?: 'AuthenticationUserResponse', error?: { __typename?: 'FieldError', field: string, message: string } | null, user?: { __typename?: 'User', id: string, username?: string | null, profileUrl?: string | null, publicKey?: string | null, encryptedPrivateKey?: string | null } | null } };
 
 export type GetChatbyUserIdQueryVariables = Exact<{
   id: Scalars['String'];
@@ -276,13 +252,14 @@ export const ChatFragmentFragmentDoc = gql`
 }
     ${MessageFragmentFragmentDoc}`;
 export const AuthenticateDocument = gql`
-    mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!, $encryptedPrivateKey: String!, $expoPushToken: String!) {
+    mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!, $encryptedPrivateKey: String!, $expoPushToken: String!, $profilePic: Upload) {
   authenticate(
     licenseKey: $licenseKey
     username: $username
     publicKey: $publicKey
     encryptedPrivateKey: $encryptedPrivateKey
     expoPushToken: $expoPushToken
+    profilePic: $profilePic
   ) {
     error {
       ...FieldErrorFragment
@@ -294,20 +271,6 @@ export const AuthenticateDocument = gql`
 
 export function useAuthenticateMutation() {
   return Urql.useMutation<AuthenticateMutation, AuthenticateMutationVariables>(AuthenticateDocument);
-};
-export const MarkAsDeliveredDocument = gql`
-    mutation MarkAsDelivered($messageIds: [String!]!) {
-  markAsDelivered(messageIds: $messageIds) {
-    error {
-      ...FieldErrorFragment
-    }
-    success
-  }
-}
-    ${FieldErrorFragmentFragmentDoc}`;
-
-export function useMarkAsDeliveredMutation() {
-  return Urql.useMutation<MarkAsDeliveredMutation, MarkAsDeliveredMutationVariables>(MarkAsDeliveredDocument);
 };
 export const SendMessageDocument = gql`
     mutation SendMessage($toUserId: String!, $content: String!) {
@@ -380,6 +343,7 @@ export const FindAccountDocument = gql`
     user {
       id
       username
+      profileUrl
       publicKey
       encryptedPrivateKey
     }

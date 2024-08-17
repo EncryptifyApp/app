@@ -13,11 +13,10 @@ export const sortChats = (chats: Chat[]): Chat[] => {
             return lastMessageTimeB.getTime() - lastMessageTimeA.getTime();
         });
 
-        // Sort messages within each chat in descending order
         sortedChats.forEach(chat => {
             chat.messages = chat.messages!.sort((messageA, messageB) => {
                 return new Date(messageB.createdAt).getTime() - new Date(messageA.createdAt).getTime();
-            });
+            })
         });
 
         return sortedChats;

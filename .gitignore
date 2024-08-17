@@ -8,6 +8,12 @@ node_modules/
 dist/
 web-build/
 
+#generated graphql
+__generated__/
+
+#android
+android/
+
 # Native
 *.orig.*
 *.jks
@@ -33,6 +39,3 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
-
-#generated graphql
-/generated

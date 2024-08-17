@@ -1,5 +1,8 @@
-mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!,$encryptedPrivateKey: String!,$expoPushToken: String!) {
-  authenticate(licenseKey: $licenseKey, username: $username, publicKey: $publicKey,encryptedPrivateKey: $encryptedPrivateKey, expoPushToken: $expoPushToken) {
+mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!,$encryptedPrivateKey: String!,$expoPushToken: String!,
+$profilePic: Upload
+) {
+  authenticate(licenseKey: $licenseKey, username: $username, publicKey: $publicKey,encryptedPrivateKey: $encryptedPrivateKey, expoPushToken: $expoPushToken,
+  profilePic: $profilePic) {
     error {
       ...FieldErrorFragment
     }

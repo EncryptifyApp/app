@@ -18,7 +18,6 @@ export const usePushNotifications = (): void => {
     const responseListener = useRef<Notifications.Subscription>();
 
     async function registerForPushNotificationsAsync() {
-        console.log("Connecting...")
         if (Device.isDevice) {
             const { status: existingStatus } =
                 await Notifications.getPermissionsAsync();
@@ -55,12 +54,11 @@ export const usePushNotifications = (): void => {
 
         notificationListener.current =
             Notifications.addNotificationReceivedListener((notification) => {
-                console.log("NOTIFICATION", notification.request.content.data);
+
             });
 
         responseListener.current =
             Notifications.addNotificationResponseReceivedListener((response) => {
-                console.log("DATA", response.notification.request.content.data)
                 const chatId = response.notification.request.content.data.chatId;
                 if (chatId) {
                     router.push({ pathname: "/chat", params: { chatId: chatId } });

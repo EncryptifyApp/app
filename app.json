@@ -4,14 +4,14 @@
     "slug": "encryptifyapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/ic_launcher.png",
     "userInterfaceStyle": "dark",
     "scheme": "your-app-scheme",
     "projectId": "d7e292be-b3e9-4c2e-9ae7-46dec613294a",
     "splash": {
       "image": "./assets/images/encryptifySplash.png",
       "resizeMode": "cover",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#0b0e0f"
     },
 
     
@@ -35,7 +35,7 @@
       "versionCode": 1,
       "googleServicesFile": "./android/app/google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/ic_launcher.png",
         "backgroundColor": "#00e701"
       },
       "permissions": [

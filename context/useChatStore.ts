@@ -70,7 +70,7 @@ const useChatStore = create<State & Actions>((set, get) => ({
             if (toUser) {
                 const decryptedMessage = await decryptMessage(newMessage, toUser);
                 //add message to top of the list
-                existingChat.messages = [decryptedMessage as Message, ...existingChat.messages as Message[]];
+                existingChat.messages = [decryptedMessage as Message,...existingChat.messages as Message[]];
                 updatedChats.splice(chatIndex, 1);
                 updatedChats.unshift(existingChat);
                 set({ chats: updatedChats });
@@ -126,12 +126,11 @@ const useChatStore = create<State & Actions>((set, get) => ({
             set({ session: userSession });
         }
 
-        //start time to measure performance
-        const startTime = new Date().getTime();
         try {
             set({ syncing: true });
             const localChats = await ChatService.getLocalChats();
             const decryptedChats = await decryptChats(localChats, user);
+
             set({ chats: sortChats(decryptedChats!) });
             if (isConnected) {
                 set({ syncing: true });
@@ -156,10 +155,6 @@ const useChatStore = create<State & Actions>((set, get) => ({
             throw error;
         } finally {
             set({ syncing: false })
-            //end time to measure performance
-            const endTime = new Date().getTime();
-            const timeDiff = endTime - startTime;
-            console.log(`Time taken to fetch data: ${timeDiff}ms`);
         }
     },
     sendPendingMessages: async (user: User) => {
