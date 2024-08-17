@@ -13,7 +13,6 @@ import { router } from 'expo-router';
 import { generatePhrase } from '../utils/generatePhrase';
 import * as Notifications from 'expo-notifications';
 import Constants from "expo-constants";
-import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
 import { styled } from 'nativewind';
 
 type AuthStep = 'INPUT_ACCOUNT_NUMBER' | 'CREATE_PASSPHRASE' | 'INPUT_PASSPHRASE' | 'INPUT_USERNAME';
@@ -97,8 +96,7 @@ export default function Auth() {
     try {
       setLoading(true);
       executeQuery();
-      const { data, error} = result;
-      console.log(result);
+      const { data, error } = result;
       if (data?.findAccount.error) {
         Alert.alert('Error', data.findAccount.error.message, [
           {
@@ -108,7 +106,7 @@ export default function Auth() {
           },
         ]);
       }
-      if(error) {
+      if (error) {
         Alert.alert('Error', 'An error occured, try again later', [
           {
             text: 'Close',
@@ -162,7 +160,6 @@ export default function Auth() {
       setPrivateKey(privateKey);
       setEncryptedPrivateKey(encryptedPrivateKey);
 
-      await getProfiles();
       setStep('INPUT_USERNAME');
     }
     catch (error) {
@@ -193,7 +190,6 @@ export default function Auth() {
         return
       } else {
         setStorageItemAsync(PRIVATE_KEY, decryptedPrivateKey.toString());
-        await getProfiles();
         setStep('INPUT_USERNAME');
       }
     }
@@ -220,13 +216,13 @@ export default function Auth() {
     }
     try {
       setLoading(true);
-  
+
       //Expo token
       const projectId = Constants.expoConfig?.extra?.eas.projectId;
       const expoPushToken = (await Notifications.getExpoPushTokenAsync({
         projectId,
       })).data;
-  
+
       const { data, error } = await authenticate({
         username: username,
         licenseKey: licenseKey,
@@ -235,13 +231,14 @@ export default function Auth() {
         expoPushToken: expoPushToken,
 
       });
-  
-      console.log(error);
+      
+
+
       if (data?.authenticate.error) {
         Alert.alert('Error', data.authenticate.error.message, [
           {
             text: 'Close',
-            onPress: () => {},
+            onPress: () => { },
             style: 'cancel',
           },
         ]);
@@ -249,12 +246,22 @@ export default function Auth() {
         authenticateUser(data.authenticate.sessionToken);
         router.replace('/');
       }
+
+      if (error) {
+        Alert.alert('Error', 'An error occured, try again later', [
+          {
+            text: 'Close',
+            onPress: () => { },
+            style: 'cancel',
+          },
+        ]);
+      }
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'An error occurred, try again later', [
         {
           text: 'Close',
-          onPress: () => {},
+          onPress: () => { },
           style: 'cancel',
         },
       ]);
@@ -455,7 +462,7 @@ export default function Auth() {
                   source={profileUrl ? { uri: profileUrl } : require('../assets/images/logo.png')}
                   className="w-24 h-24 rounded-full"
                 /><StyledTouchableOpacity
-                  onPress={() => {}}
+                  onPress={() => { }}
                   className="absolute right-0 bottom-0 bg-black rounded-full p-2"
                 ><Feather name="edit" size={16} color="#00e701" /></StyledTouchableOpacity></StyledView>
 
