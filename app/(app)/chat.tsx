@@ -341,9 +341,9 @@ export default function ChatScreen() {
                                 multiline
                                 style={{ maxHeight: 4 * 20 }}
                             />
-                            <TouchableOpacity className="ml-2">
+                            {/* <TouchableOpacity className="ml-2">
                                 <Ionicons name="camera-outline" size={24} color="white" />
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
                         </View>
                         <View className="ml-3">
                             <Button
