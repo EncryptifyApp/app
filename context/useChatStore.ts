@@ -121,6 +121,10 @@ const useChatStore = create<State & Actions>((set, get) => ({
         //TODO: remove this from here cause session is already set in the app context
         // this is done just to get it in the layout so we can detect if the user is logged in
         // without closing the app
+        //start timer to calculate the time this function takes to execute
+        const start = new Date().getTime();
+
+
         const { session } = get();
         if (!session) {
             set({ session: userSession });
@@ -130,7 +134,7 @@ const useChatStore = create<State & Actions>((set, get) => ({
             set({ syncing: true });
             const localChats = await ChatService.getLocalChats();
             const decryptedChats = await decryptChats(localChats, user);
-
+            
             set({ chats: sortChats(decryptedChats!) });
             if (isConnected) {
                 set({ syncing: true });
@@ -155,6 +159,8 @@ const useChatStore = create<State & Actions>((set, get) => ({
             throw error;
         } finally {
             set({ syncing: false })
+            const end = new Date().getTime();
+            console.log('Fetch data time:', end - start + 'ms');
         }
     },
     sendPendingMessages: async (user: User) => {
