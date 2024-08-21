@@ -87,6 +87,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
         try {
           await fetchData(user, isConnected, session);
         } catch (error) {
+          console.log("Error", error)
           signOut();
         }
       };
