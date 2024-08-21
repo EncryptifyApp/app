@@ -14,7 +14,6 @@ export type Scalars = {
   Int: number;
   Float: number;
   DateTime: any;
-  Upload: any;
 };
 
 export type AuthResponse = {
@@ -77,7 +76,6 @@ export type MutationAuthenticateArgs = {
   encryptedPrivateKey: Scalars['String'];
   expoPushToken: Scalars['String'];
   licenseKey: Scalars['String'];
-  profilePic?: InputMaybe<Scalars['Upload']>;
   publicKey: Scalars['String'];
   username: Scalars['String'];
 };
@@ -152,7 +150,6 @@ export type AuthenticateMutationVariables = Exact<{
   publicKey: Scalars['String'];
   encryptedPrivateKey: Scalars['String'];
   expoPushToken: Scalars['String'];
-  profilePic?: InputMaybe<Scalars['Upload']>;
 }>;
 
 
@@ -252,14 +249,13 @@ export const ChatFragmentFragmentDoc = gql`
 }
     ${MessageFragmentFragmentDoc}`;
 export const AuthenticateDocument = gql`
-    mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!, $encryptedPrivateKey: String!, $expoPushToken: String!, $profilePic: Upload) {
+    mutation Authenticate($licenseKey: String!, $username: String!, $publicKey: String!, $encryptedPrivateKey: String!, $expoPushToken: String!) {
   authenticate(
     licenseKey: $licenseKey
     username: $username
     publicKey: $publicKey
     encryptedPrivateKey: $encryptedPrivateKey
     expoPushToken: $expoPushToken
-    profilePic: $profilePic
   ) {
     error {
       ...FieldErrorFragment
