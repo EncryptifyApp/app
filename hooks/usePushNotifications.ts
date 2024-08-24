@@ -32,7 +32,7 @@ export const usePushNotifications = (): void => {
                 return;
             }
         } else {
-            console.warn("Must be using a physical device for Push notifications");
+            console.log("WARNING: Must be using a physical device for Push notifications");
         }
 
         if (Platform.OS === "android") {

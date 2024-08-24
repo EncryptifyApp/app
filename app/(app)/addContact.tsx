@@ -42,6 +42,7 @@ export default function AddContact() {
 
     useEffect(() => {
         const handleQueryResult = () => {
+            console.log(result)
             if (result.data) {
                 if (result.data.getChatbyUserId === null) {
                     Alert.alert("User not found", "The user you are trying to reach is not found. Please try again", [

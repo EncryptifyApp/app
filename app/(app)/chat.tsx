@@ -119,7 +119,7 @@ export default function ChatScreen() {
                         <DateSplitter date={moment(item.createdAt).format('LL')} />
                     )
                 }
-                {item.sender?.id === user?.id ? (
+                {item?.sender.id === user?.id ? (
                     <MessageSent message={item} />
                 ) : (
                     <MessageReceived message={item} />

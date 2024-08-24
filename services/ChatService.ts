@@ -4,6 +4,7 @@ import { Chat, Message, MessageStatus } from '../__generated__/graphql';
 class ChatService {
 
   CHATS_KEY = 'chats';
+  PINNED_CHATS_KEY = 'pinnedChats';
 
   async storeChatsLocally(chats: Chat[]) {
     try {
@@ -76,6 +77,7 @@ class ChatService {
   async clearChats() {
     try {
       await AsyncStorage.removeItem(this.CHATS_KEY);
+      await AsyncStorage.removeItem(this.PINNED_CHATS_KEY);
     } catch (error) {
       console.error('Error clearing chats:', error);
       throw error;
@@ -83,7 +85,7 @@ class ChatService {
   }
 
 
-  async updateMessageStatus(messageTempId: string,id:string, createdAt: Date) {
+  async updateMessageStatus(messageTempId: string, id: string, createdAt: Date) {
     try {
       const storedValue = await AsyncStorage.getItem(this.CHATS_KEY);
       const chats = storedValue ? JSON.parse(storedValue) : [];
@@ -106,7 +108,7 @@ class ChatService {
       console.error('Error updating message status:', error);
       throw error;
     }
-    
+
   }
 
   //get all pending messages
@@ -114,16 +116,16 @@ class ChatService {
     try {
       const storedValue = await AsyncStorage.getItem(this.CHATS_KEY);
       const chats = storedValue ? JSON.parse(storedValue) : [];
-      
+
       // Check if chats are not empty
       if (!chats || chats.length === 0) return [];
-  
+
       // Filter for pending messages
       const pendingMessages = chats
         .filter((chat: Chat) => chat.messages && chat.messages.length > 0)
         .map((chat: Chat) => chat.messages!.filter((message: Message) => message.status === MessageStatus.Pending))
         .flat();
-  
+
       return pendingMessages;
     } catch (error) {
       console.error('Error getting pending messages:', error);
@@ -131,6 +133,27 @@ class ChatService {
     }
   }
 
+
+  async storePinnedChats(pinnedChats: string[]) {
+    try {
+      const jsonValue = JSON.stringify(pinnedChats);
+      await AsyncStorage.setItem(this.PINNED_CHATS_KEY, jsonValue);
+    } catch (error) {
+      console.error('Error storing pinned chats:', error);
+      throw error;
+    }
+  }
+
+  async getPinnedChats() {
+    try {
+      const storedValue = await AsyncStorage.getItem(this.PINNED_CHATS_KEY);
+      const pinnedChats = JSON.parse(storedValue || '[]');
+      return pinnedChats;
+    } catch (error) {
+      console.error('Error getting pinned chats:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ChatService();

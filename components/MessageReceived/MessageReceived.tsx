@@ -4,7 +4,7 @@ import moment from 'moment';
 import { Message } from '../../__generated__/graphql';
 import * as Clipboard from 'expo-clipboard';
 import { Menu } from 'react-native-paper';
-import { styles } from '../../styles/MessageMenuStyles';
+import { styles } from '../../styles/ItemMenuStyles';
 
 interface Props {
     message: Message;
@@ -33,7 +33,7 @@ const MessageReceived: React.FC<Props> = ({ message }) => {
                 onLongPress={handleLongPress}
                 className="justify-start items-start mb-2"
             >
-                <View className="bg-steel-gray rounded-xl p-2 max-w-xs">
+                <View className="bg-steel-gray rounded-xl px-2 py-1 max-w-xs">
                     <Text className="text-white font-primary-semibold text-base">
                         {message.content}
                     </Text>
