@@ -15,6 +15,7 @@ type State = {
     // without closing the app
     session: string | null,
     chats: Chat[],
+    pinnedChatsIds: string[],
     syncing: boolean,
     chatIdToUpdated?: string | null,
 }
@@ -22,6 +23,8 @@ type State = {
 type Actions = {
     clearChats: () => void
     setChats: (chats: Chat[], user: User) => void,
+    pinChat: (chatId: string) => void,
+    unpinChat: (chatId: string) => void,
     setChatIdToUpdated: (chatId: string | null) => void
     setSyncing: (syncing: boolean) => void
     updateChats: (session: string, message: Message, user: User) => Promise<void>
@@ -38,6 +41,7 @@ const useChatStore = create<State & Actions>((set, get) => ({
     // without closing the app
     session: null,
     chats: [],
+    pinnedChatsIds: [],
     syncing: true,
     isConnected: false,
     clearChats: () => {
@@ -59,6 +63,23 @@ const useChatStore = create<State & Actions>((set, get) => ({
         } finally {
             set({ syncing: false });
         }
+    },
+    pinChat: (chatId) => {
+        const { pinnedChatsIds } = get();
+        //if the chat is already pinned, return
+        if (pinnedChatsIds.includes(chatId)) return;
+        //if the pinned chats are already 4, return
+        if (pinnedChatsIds.length == 4) return;
+
+        const updatedPinnedChats = [...pinnedChatsIds, chatId];
+        set({ pinnedChatsIds: updatedPinnedChats });
+        ChatService.storePinnedChats(updatedPinnedChats);
+    },
+    unpinChat: (chatId) => {
+        const { pinnedChatsIds } = get();
+        const updatedPinnedChats = pinnedChatsIds.filter((id) => id !== chatId);
+        set({ pinnedChatsIds: updatedPinnedChats });
+        ChatService.storePinnedChats(updatedPinnedChats);
     },
     updateChats: async (session: string, newMessage: Message, user: User) => {
         const { chats } = get();
@@ -134,7 +155,8 @@ const useChatStore = create<State & Actions>((set, get) => ({
             set({ syncing: true });
             const localChats = await ChatService.getLocalChats();
             const decryptedChats = await decryptChats(localChats, user);
-            
+            const pinnedChats = await ChatService.getPinnedChats();
+            set({ pinnedChatsIds: pinnedChats });
             set({ chats: sortChats(decryptedChats!) });
             if (isConnected) {
                 set({ syncing: true });

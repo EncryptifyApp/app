@@ -76,7 +76,6 @@ export default function Auth() {
   };
 
   const handleLicenseKeyChange = (text: string) => {
-    if (text.length > 17) return;
     const formattedKey = formatLicenseKey(text);
     setLicenseKey(formattedKey);
   };
@@ -231,9 +230,8 @@ export default function Auth() {
         expoPushToken: expoPushToken,
 
       });
+
       
-
-
       if (data?.authenticate.error) {
         Alert.alert('Error', data.authenticate.error.message, [
           {

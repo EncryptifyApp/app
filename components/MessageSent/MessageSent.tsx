@@ -5,7 +5,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Message, MessageStatus } from '../../__generated__/graphql';
 import * as Clipboard from 'expo-clipboard';
 import { Menu } from 'react-native-paper';
-import { styles } from '../../styles/MessageMenuStyles';
+import { styles } from '../../styles/ItemMenuStyles';
 
 interface Props {
     message: Message;
@@ -35,7 +35,7 @@ export default function MessageSent({ message }: Props) {
                 onLongPress={handleLongPress}
                 className="justify-end items-end mb-2"
             >
-                <View className="space-x-4 bg-primary rounded-xl p-2 max-w-xs">
+                <View className="space-x-4 bg-primary rounded-xl px-2 py-1 max-w-xs">
                     <Text className="text-black font-primary-semibold text-base">
                         {message.content}
                     </Text>
@@ -53,7 +53,7 @@ export default function MessageSent({ message }: Props) {
                             <Ionicons name="checkmark-done" size={14} color={'black'} />
                         )}
                         {message.status === MessageStatus.Read && (
-                            <Ionicons name="checkmark-done" size={14} color={'black'} />
+                            <Ionicons name="checkmark-done" size={14} color={'#00e701'} />
                         )}
                     </View>
                 </View>

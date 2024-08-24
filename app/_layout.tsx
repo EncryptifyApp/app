@@ -9,7 +9,6 @@ import { SessionProvider } from '../context/useSession';
 import { ConnectionProvider } from '../context/useConnection';
 import useChatStore from '../context/useChatStore';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-import { multipartFetchExchange } from '@urql/exchange-multipart-fetch';
 
 
 const Root = () => {

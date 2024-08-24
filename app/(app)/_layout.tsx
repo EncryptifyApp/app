@@ -8,14 +8,13 @@ import {
     Rajdhani_700Bold,
 } from '@expo-google-fonts/rajdhani';
 import useChatStore from '../../context/useChatStore';
-import { View } from 'react-native';
+import { View} from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
-    const { session, isLoading } = useSession() as any;
+    const { session, isLoading, isLocked} = useSession() as any;
     const {syncing} = useChatStore();
-
 
     let [fontsLoaded, fontError] = useFonts({
         Rajdhani_400Regular,
@@ -37,12 +36,15 @@ export default function AppLayout() {
     if(isLoading) {
         return <View className="flex-1 bg-midnight-black"></View> 
     }
-
     
     if (!session) {
         return <Redirect href="/auth" />;
     }
 
+    if (isLocked) {
+        SplashScreen.hideAsync();
+        return  <Redirect href="/pin" /> ;
+    }
 
     return <Stack screenOptions={{ headerShown: false, animation:"fade_from_bottom"}} />
 }

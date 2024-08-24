@@ -14,6 +14,7 @@ export const AuthContext = React.createContext<{
   subscriptionEndDate: Date | null;
   session?: string | null;
   isLoading: boolean;
+  isLocked: boolean;
 } | null>({
   authenticateUser: async (sessionToken: string) => { },
   signOut: async () => { },
@@ -21,6 +22,7 @@ export const AuthContext = React.createContext<{
   subscriptionEndDate: null,
   session: null,
   isLoading: true,
+  isLocked: true
 });
 
 export function useSession() {
@@ -36,6 +38,7 @@ export function useSession() {
 
 export function SessionProvider(props: React.PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
+  const [isLocked, setLocked] = useState<boolean>(false);
   const { fetchData, setSyncing, clearChats, sendPendingMessages } = useChatStore();
   const { isConnected } = useConnection();
   const [user, setUser] = useState<User | null>(null);
@@ -79,6 +82,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
     await clearStorageItem(PRIVATE_KEY);
     // clear local storage
     await UserService.clearLocalUser();
+
   }
 
   useEffect(() => {
@@ -113,6 +117,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
         subscriptionEndDate,
         session,
         isLoading,
+        isLocked
       }}>
       {props.children}
     </AuthContext.Provider>

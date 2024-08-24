@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
     Menu: {
         backgroundColor: '#191b1f',
-        padding: 0
+        padding: 0,
     },
     MenuItem: {
         height: 50,
